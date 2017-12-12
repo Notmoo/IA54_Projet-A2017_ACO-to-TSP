@@ -1,0 +1,11 @@
+.scroll-pane > .viewport {
+    -fx-background-color: white;
+}
+
+.edge_type_normal {
+    -fx-stroke: black;
+}
+
+.egde_type_best_solution {
+    -fx-stroke: red;
+}
