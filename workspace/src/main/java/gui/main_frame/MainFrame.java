@@ -5,6 +5,7 @@ import gui.graph.cell.CellType;
 import gui.graph.edge.EdgeType;
 import gui.layout.Layout;
 import gui.layout.impl.RandomLayout;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.chart.Chart;
@@ -16,7 +17,7 @@ import model.ITSPDisplayerCallback;
 import javax.swing.event.EventListenerList;
 import java.util.Map;
 
-public class MainFrame implements ITSPDisplayer{
+public class MainFrame extends Application implements ITSPDisplayer  {
 
     private BorderPane root;
     private Scene scene;
@@ -36,20 +37,9 @@ public class MainFrame implements ITSPDisplayer{
         listenerList = new EventListenerList();
     }
 
-    private void init(){
-        root = new BorderPane();
-
-        scene = new Scene(root, 1024, 768);
-        //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-
-        graph = new Graph();
-
-        Layout layout = new RandomLayout(graph);
-        layout.execute();
-
-
-        requestedScreen = "graph";
-        updateScreen();
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        initAndShow(primaryStage);
     }
 
     private void updateScreen(){
@@ -73,9 +63,21 @@ public class MainFrame implements ITSPDisplayer{
         }
     }
 
-    public void initAndShow(Stage primaryStage){
+    private void initAndShow(Stage primaryStage){
 
-        init();
+        root = new BorderPane();
+
+        scene = new Scene(root, 1024, 768);
+        //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+
+        graph = new Graph();
+
+        Layout layout = new RandomLayout(graph);
+        layout.execute();
+
+
+        requestedScreen = "graph";
+        updateScreen();
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Ant Colony Optimisation appliqué au problème du TSP - IA54 - A2017 - BOUCHEREAU/PROST");
