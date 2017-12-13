@@ -1,0 +1,2 @@
+INDEX VERSION 1.130+G:\Dev\IA54_A2017_PROJECT\sarl\.metadata\.plugins\org.eclipse.jdt.core
+3908534928.index

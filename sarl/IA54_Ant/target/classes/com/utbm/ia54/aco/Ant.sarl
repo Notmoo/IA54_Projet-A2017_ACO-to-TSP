@@ -1,0 +1,66 @@
+package com.utbm.ia54.aco
+
+import io.sarl.core.Initialize
+import io.sarl.core.Destroy
+import io.sarl.core.DefaultContextInteractions
+import java.util.UUID
+import java.util.Random
+
+
+//XXX remove theses events (placeholders)
+event find_path {
+	var nbNodes : short
+	var env : float[][][]
+	var idFirstNode : short
+	var idLastNode : short
+}
+
+event ack_solution {
+}
+
+event register{
+	
+}
+
+event ack_register {
+}
+
+event ack_unregister {
+}
+
+event poc{
+	
+}
+
+//-----------------------------------------
+//		AGENTS
+//-----------------------------------------
+agent AntAgent{
+	uses DefaultContextInteractions, TSPPathFinder
+	
+	var envUUID : UUID
+	
+	on Initialize{
+		new SimpleTSPPathFinder().setSkill(TSPPathFinder)
+		new register().emit
+	}
+	
+	on Destroy {
+		
+	}
+	
+	on find_path {
+		if(occurrence.idFirstNode!=-1){
+			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode).emit[
+				it.UUID === envUUID
+			]
+			new poc().emit[it.UUID === occurrence.source.UUID]
+		}else{
+			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
+			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode).emit [
+				it.UUID === envUUID
+			]
+			new poc().emit[it.UUID === occurrence.source.UUID]
+		}
+	}
+}
