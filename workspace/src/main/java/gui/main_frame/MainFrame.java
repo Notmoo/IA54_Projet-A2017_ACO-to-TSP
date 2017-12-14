@@ -30,7 +30,6 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     }
 
     private BorderPane root;
-    private Scene scene;
 
     private Graph graph;
     private Chart chart;
@@ -78,7 +77,7 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
         root = new BorderPane();
 
-        scene = new Scene(root, 1024, 768);
+        Scene scene = new Scene(root, 1024, 768);
         //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         graph = new Graph();
