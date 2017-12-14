@@ -14,3 +14,5 @@
 # Maven
 log/
 workspace/target/
+sarl/IA54_Ant/target/
+sarl/IA54_Ant/src/main/generated-sources/
