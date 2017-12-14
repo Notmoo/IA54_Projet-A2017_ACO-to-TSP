@@ -14,29 +14,28 @@ import io.sarl.core.MemberJoined
 import io.sarl.core.MemberLeft
 import java.nio.file.Path
 import io.sarl.core.DefaultContextInteractions
+import gui.main_frame.MainFrame
+import io.sarl.core.Schedules
 
 // XXX remove theses events (placeholders)
-event display_solution{
+event DisplaySolution{
 	
 }
 
-event clear_solutions{
+event ClearSolutions{
 	var clear_best : boolean
 	var clear_normal : boolean	
 }
 
-event display_nodes {
+event DisplayNodes {
 	var nbNodes : short
-	var env : float[][][]
-	var dist : long
-	var isBest : boolean
 }
 
-event clear_nodes
+event ClearNodes
 
-event displayer_ready
+event DisplayerReady
 
-event tsp_property_changed{
+event TspPropertyChanged{
 	val property_id : String
 	val property_value : String
 	
@@ -46,16 +45,12 @@ event tsp_property_changed{
 	}
 }
 
-event tsp_input_file{
+event TspInputFile{
 	val path : Path
 	
 	new(path : Path){
 		this.path = path
 	}
-}
-
-event bind{
-	
 }
 
 //-----------------------------------------
@@ -66,13 +61,25 @@ event bind{
  * 
  */
 agent DisplayerAgent {
-	uses Logging, DefaultContextInteractions
+	uses Logging, DefaultContextInteractions, Schedules
+	
+	var gui : MainFrame = null
 
 	on Initialize {
 		// Event trigger before the agent begin to live or to be used.
 		// You should put all the initialization statements in this block of code.
+		loggingName = "Displayer"
 		info("The agent was started.")
-		new displayer_ready().emit
+		MainFrame.summonGui
+		info("Gui has been summoned")
+		val task = task("waiting_for_gui_to_init")
+		task.every(1000) [
+			if (MainFrame.instance !== null) {
+				gui = MainFrame.instance
+				new DisplayerReady().emit
+				task.cancel
+			}
+		]
 	}
 
 	on Destroy {
@@ -109,31 +116,27 @@ agent DisplayerAgent {
 		// Sent to all members of the considered super-holon.
 	}
 	
-	on display_solution{
+	on DisplaySolution{
 		//TODO
 	}
 	
-	on display_nodes{
+	on DisplayNodes{
 		//TODO	
 	}
 	
-	on clear_solutions{
+	on ClearSolutions{
 		//TODO	
 	}
 	
-	on clear_nodes{
+	on ClearNodes{
 		//TODO	
-	}
-	
-	on bind{
-		//TODO
 	}
 	
 	def fireInputFileRequested(filePath : Path){
-		new tsp_input_file(filePath).emit
+		new TspInputFile(filePath).emit
 	}
 	
 	def fireTspPropertyChangedEvent(propId : String, propVal : String){
-		new tsp_property_changed(propId, propVal).emit 	
+		new TspPropertyChanged(propId, propVal).emit 	
 	}
 }
