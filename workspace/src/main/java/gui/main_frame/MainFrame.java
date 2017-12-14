@@ -19,6 +19,16 @@ import java.util.Map;
 
 public class MainFrame extends Application implements ITSPDisplayer  {
 
+    private static MainFrame INSTANCE = null;
+
+    public static MainFrame getInstance(){
+        return INSTANCE;
+    }
+
+    public static void summonGui(){
+        new Thread(Application::launch).start();
+    }
+
     private BorderPane root;
     private Scene scene;
 
@@ -31,6 +41,7 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     private EventListenerList listenerList;
 
     public MainFrame() {
+        INSTANCE = this;
         currentScreen = "";
         requestedScreen = "";
 
