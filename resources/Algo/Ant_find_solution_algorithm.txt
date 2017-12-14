@@ -1,0 +1,138 @@
+# Algorithme de détermination d'une solution
+# Agent Ant
+
+function trouverSolution(n, M, P0, Pn){
+	data
+		* n : short // nb de noeuds
+		* M : float[n][n][2] // matrice de distance et niveau de phéromones entre les noeuds (M[i][j][0] = distance entre les noeuds i et j, M[i][j][1] = niveau de phéromone entre les noeuds i et j)
+		* P0 : short /// id du noeud de départ
+		* Pn : short // id du noeud d'arrivée (optionnel, vaut -1 si pas de noeud d'arrivé)
+		
+	variables
+		* Mvisité : boolean[n] // tableau de valeurs binaires représentant l'état visité des noeuds ("Mvisité[i] = vrai" signifie que le noeud d'id i a déjà été visité)
+		* Msolution : short[n] // tableau des id ordonnés des noeuds visités par la solution
+		* step : short // numéro du step actuel
+		* dist : unsigned long // distance totale de trajet associé à la solution
+		* Pstep : short // représente un id de noeud, utilisé comme variable temporaire
+		* Proba : double[n] // tableau des sommes incrémentales des probabilités d'élection des noeuds (Proba[i] = somme des probabilité des noeuds de 0 à i, Proba[i]-Proba[i-1] = probabilité d'élection du noeud i)
+		
+	begin
+		Mvisité <- {false, false, ..., false};
+		Msolution <- {-1, -1, ..., -1};
+		Msolution[0] <- P0;
+		step <- 0;
+		dist <- 0;
+		
+		For step de 1 à n-1 Do{
+			Pstep <- -1;
+			
+			Do{
+				/*
+				 * Si nous sommes à la dernière étape du voyage et que le noeud final a été passé en paramètre, alors il devient la destination
+				 * Sinon on éli le prochain noeud grâce aux probabilités calculées précédement
+				 */
+				If(step = n-1 AND Pn <> -1) Do{
+					Pstep <- Pn;
+				}Else{
+					/*
+					 * On calcule les probabilités d'élection des différentes destinations possibles, a.k.a le %age de chance que chaque noeud soit élu comme la prochaine destination
+					 * Les noeuds déjà visité auront une proba égale à 0
+					 * Le noeud final, si défini, aura une probabilité égale à 0
+					 */
+					Proba <- calculerProba(n, M[step], Mvisité, Pn);
+				
+					Pstep <- trouverProchainNoeud(n, Proba);
+				}
+			}While(Pstep = -1);
+			
+			/*
+			 * On ajoute la distance de cette étape à la somme des distances des déplacements
+			 * On inscrit le nouveau noeud dans la liste ordonnée des noeuds de la solution
+			 * On inscrit que le nouveau noeud a été visité
+			 */
+			dist <- dist + M[Msolution[step-1]][Pstep][0];
+			Msolution[step] <- Pstep;
+			Mvisité[Pstep] <- true;
+			
+		}
+		
+		Renvoyer Résultat(Msolution, dist); //On encapsule la liste ordonnée des noeuds ainsi que la distance totale dans une structure de donnée
+	END
+}
+
+FONCTION calculerProba(n, Mstep, Mvisité, Pn){
+	data
+		* n : short // nb de noeuds
+		* Mstep : float[n][2] // matrice de distances et niveaux de phéromones pour les noeuds destination
+		* Mvisité : boolean[n] // tableau de valeurs binaires représentant l'état visité des noeuds ("Mvisité[i] = vrai" signifie que le noeud d'id i a été visité)
+		* Pn : short // id du dernier noeud (peut valoir -1, dans le cas où celui-ci n'a pas été spécifié)
+		
+	Variables
+		* nbNoeudsEligibles : short // nombre de noeuds éligibles en tant que prochaine destination
+		* totalPheromone : unsigned long // sommes des niveaux de phéromones des noeuds éligibles
+		* iter : short // valeur d'itération
+		* Proba : double[n] // tableau des sommes incrémentales des probabilités d'élection des noeuds (Proba[i] = somme des probabilité des noeuds de 0 à i, Proba[i]-Proba[i-1] = probabilité d'élection du noeud i) 
+		
+	Begin
+		nbNoeudsEligibles <- 0;
+		totalPheromone <- 0;
+		
+		For iter from 0 to n-1 Do{
+			If(Mvisité[iter] = false AND iter <> Pn) Do{
+				nbNoeudsEligibles = nbNoeudsEligibles + 1;
+				totalPheromone = totalPheromone + Mstep[iter][1];
+			}
+		}
+		
+		For iter from 0 to n-1 Do{
+			If(Mvisité[iter] = false AND iter <> Pn AND iter = 0) Do{
+				Proba[iter] <- Mstep[iter][1]/totalPheromone;
+			}Else If(Mvisité[iter] = false AND iter <> Pn) Do{
+				Proba[iter] <- Proba[iter-1] + Mstep[iter][1]/totalPheromone;
+			}Else If(iter = 0) Do{
+				Proba[iter] <- 0;
+			}Else{
+				Proba[iter] <- Proba[iter-1];
+			}
+		}
+		
+		Renvoyer Proba;
+	END
+}
+
+FONCTION trouverProchainNoeud(n, Proba){
+	data
+		* n : short // nb de noeuds
+		* Proba : double[n] // tableau des sommes incrémentales des probabilités d'élection des noeuds (Proba[i] = somme des probabilité des noeuds d'id allant de 0 à i, Proba[i]-Proba[i-1] = probabilité d'élection du noeud d'id égal à i)
+		
+	Variables
+		* rand : double // valeur aléatoire utilisée pour l'élection du prochain noeud
+		* iter : short // valeur d'itération
+		* Pelu : short // id du noeud élu
+		
+	Begin
+		rand <- random(0,1); // valeur aléatoire appartenant à l'intervale [0, 1[
+		Pelu <- -1;
+		iter <- 0;
+		
+		/*
+		 * On parcourt Proba tant que la valeur de rand est supérieure à la somme des probabilité des noeuds entre 0 et iter.
+		 *
+		 * Dès que la valeur de rand devient inférieure, on donne à Pelu la valeur de iter.
+		 *
+		 * Si la valeur de rand est toujours supérieure à la probabilité quand on arrive à la fin du tableau de proba, alors -1 est utilisé comme id du prochain
+		 * noeud (valeur par défaut, doit lever une erreur de parcours quand reçue)
+		 */
+		While (rand >= Proba[iter] AND iter<n) Do{
+			iter = iter + 1;
+		}
+		
+		If(rand >= Proba[iter]) Do{
+			Pelu <- -1;
+		}Else{
+			Pelu <- iter;
+		}
+		
+		Renvoyer Pelu;
+	END
+}
