@@ -1,8 +1,8 @@
-package gui.layout.impl;
+package gui.graph.layout.impl;
 
 import gui.graph.Graph;
 import gui.graph.cell.Cell;
-import gui.layout.Layout;
+import gui.graph.layout.Layout;
 
 import java.util.List;
 import java.util.Random;

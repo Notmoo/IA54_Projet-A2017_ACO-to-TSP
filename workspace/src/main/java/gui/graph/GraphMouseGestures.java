@@ -4,13 +4,13 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 
-public class MouseGestures {
+public class GraphMouseGestures {
 
     final DragContext dragContext = new DragContext();
 
     Graph graph;
 
-    public MouseGestures( Graph graph) {
+    public GraphMouseGestures(Graph graph) {
         this.graph = graph;
     }
 

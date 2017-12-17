@@ -1,4 +1,4 @@
-package model;
+package interfaces;
 
 import java.nio.file.Path;
 import java.util.EventListener;

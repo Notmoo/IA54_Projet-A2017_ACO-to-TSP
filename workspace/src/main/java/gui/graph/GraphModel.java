@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Model {
+public class GraphModel {
 
     private Cell graphParent;
 
@@ -27,7 +27,7 @@ public class Model {
 
     private Map<String,Cell> cellMap; // <id,cell>
 
-    public Model() {
+    public GraphModel() {
 
         graphParent = new Cell( "_ROOT_");
 

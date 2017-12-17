@@ -1,4 +1,4 @@
-package gui.layout;
+package gui.graph.layout;
 
 public abstract class Layout {
 
