@@ -1,5 +1,6 @@
 package gui.main_frame;
 
+import gui.chart.Chart;
 import gui.graph.Graph;
 import gui.graph.cell.CellType;
 import gui.graph.edge.EdgeType;
@@ -8,7 +9,6 @@ import gui.graph.layout.impl.RandomLayout;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.chart.Chart;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import interfaces.ITSPDisplayer;
