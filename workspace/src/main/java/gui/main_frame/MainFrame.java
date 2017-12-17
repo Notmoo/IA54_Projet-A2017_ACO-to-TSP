@@ -10,18 +10,23 @@ import gui.toolbar.PropertyToolbar;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import interfaces.ITSPDisplayer;
 import interfaces.ITSPDisplayerCallback;
 
 import javax.swing.event.EventListenerList;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 
 public class MainFrame extends Application implements ITSPDisplayer  {
 
     private static MainFrame INSTANCE = null;
+    private static final String GRAPH_STRING_ID = "Graph", CHART_STRING_ID = "Courbe";
 
     public static MainFrame getInstance(){
         return INSTANCE;
@@ -56,16 +61,17 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     }
 
     private void updateScreen(){
+        System.out.println("update requested | current : "+currentScreen+" | requested : "+requestedScreen);
         if(!currentScreen.equals(requestedScreen)){
             switch(requestedScreen){
-                case "graph" :
+                case GRAPH_STRING_ID :
                     Platform.runLater(()->{
                         root.setCenter(graph.getContent());
                     });
                     break;
-                case "chart" :
+                case CHART_STRING_ID :
                     Platform.runLater(()->{
-                        //TODO add chart screen's content
+                        root.setCenter(chart.getContent());
                     });
                     break;
                 default :
@@ -78,13 +84,19 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
     private void initAndShow(Stage primaryStage){
 
+        //Initialisation de du pane pricipal
         root = new BorderPane();
 
+        //Initialisation du pane contenant le graph
         graph = new Graph();
 
         Layout layout = new RandomLayout(graph);
         layout.execute();
 
+        //Initialisation du pane contenant les courbes
+        chart = new Chart();
+
+        //Initialisation de la barre de propriété latérale
         toolbar = new PropertyToolbar();
         root.setRight(toolbar.getContent());
         toolbar.addListener(((property, value) -> {
@@ -92,10 +104,57 @@ public class MainFrame extends Application implements ITSPDisplayer  {
                     .forEach(l->l.onPropertyChanged(property, value));
         }));
 
-        requestedScreen = "graph";
+        //Initialisation de la barre de menu
+        Menu navMenu = new Menu("Ecrans");
+        ToggleGroup tGroup = new ToggleGroup();
+        RadioMenuItem graphMenuItem = new RadioMenuItem(GRAPH_STRING_ID);
+        graphMenuItem.setToggleGroup(tGroup);
+        graphMenuItem.setSelected(true);
+        graphMenuItem.setOnAction(event->{
+            requestedScreen = GRAPH_STRING_ID;
+            updateScreen();
+        });
+        RadioMenuItem chartMenuItem = new RadioMenuItem(CHART_STRING_ID);
+        chartMenuItem.setOnAction(event->{
+            requestedScreen = CHART_STRING_ID;
+            updateScreen();
+        });
+        chartMenuItem.setToggleGroup(tGroup);
+        navMenu.getItems().addAll(graphMenuItem, chartMenuItem);
+
+        Menu miscMenu = new Menu("Autres");
+        CheckMenuItem propertiesMenuItem = new CheckMenuItem("Afficher les propriétés");
+        propertiesMenuItem.setSelected(true);
+        propertiesMenuItem.selectedProperty().addListener((obs, oldValue, newValue)->{
+            if(newValue)
+                root.setRight(toolbar.getContent());
+            else
+                root.setRight(null);
+        });
+        MenuItem importFileMenuItem = new MenuItem("Importer...");
+        importFileMenuItem.setOnAction((event)->{
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Importer un fichier de configuration TSP");
+            File selectedFile = fileChooser.showOpenDialog(new Stage());
+
+            if(selectedFile!=null){
+                Path path = selectedFile.toPath();
+                Arrays.stream(listenerList.getListeners(ITSPDisplayerCallback.class))
+                        .forEach(l->l.onFileInput(path));
+            }
+        });
+        miscMenu.getItems().addAll(propertiesMenuItem, importFileMenuItem);
+
+        MenuBar menuBar = new MenuBar();
+        menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
+        menuBar.getMenus().addAll(navMenu, miscMenu);
+        root.setTop(menuBar);
+
+        //Affichage de l'écran par défaut
+        requestedScreen = GRAPH_STRING_ID;
         updateScreen();
 
-
+        //Initialisation de la scène et du stage JFX + affichage de la GUI
         //TODO revoir la taille de la fenêtre
         //TODO régler le pb du fichier css
         Scene scene = new Scene(root, 1024, 768);
