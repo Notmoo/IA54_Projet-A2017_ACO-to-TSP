@@ -178,10 +178,12 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
     @Override
     public void displayNodes(Map<Short, String> nodes) {
+        graph.clearEdges();
         for(short s : nodes.keySet()){
             graph.addCell(convertToCellTag(s, nodes.get(s)), CellType.SIMPLE);
         }
         graph.applyUpdate();
+        chart.clearChart();
     }
 
     @Override
@@ -196,6 +198,7 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     @Override
     public void clearNodes() {
         graph.clearCells();
+        chart.clearChart();
     }
 
     @Override
@@ -214,6 +217,7 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     @Override
     public void clearSolutions() {
         graph.clearEdges();
+        chart.clearChart();
     }
 
     @Override
