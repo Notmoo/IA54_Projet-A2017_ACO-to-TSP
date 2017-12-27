@@ -25,8 +25,20 @@ public class PropertyToolbar {
     public PropertyToolbar() {
         eventListenerList = new EventListenerList();
         model = new PropertyToolbarModel();
-        model.addListener(this::updateGui);
+        model.addListener(new PropertyToolbarModel.IPropertyToolbarModelListener() {
+            @Override
+            public void onPropertyChangedEvent(String property, String newValue) {
+                updateProperty(property, newValue);
+            }
+
+            @Override
+            public void onPropertiesChangedEvent() {
+                updateGui();
+            }
+        });
         guiProperties = new HashMap<>();
+
+        updateGui();
     }
 
     private void applyChanges() {
@@ -36,7 +48,7 @@ public class PropertyToolbar {
         model.commit();
     }
 
-    private void updateGui(String property, String value) {
+    private void updateProperty(String property, String value) {
         for(Label label : guiProperties.keySet()){
             if(label.getText().equals(property))
                 guiProperties.get(label).setText(value);
@@ -44,27 +56,7 @@ public class PropertyToolbar {
         firePropertyChangedEvent(property, value);
     }
 
-    public Pane getContent(){
-        return mainPane;
-    }
-
-    public void addListener(IPropertyToolbarListener l){
-        eventListenerList.add(IPropertyToolbarListener.class, l);
-    }
-
-    private void firePropertyChangedEvent(String property, String value) {
-        Arrays.stream(eventListenerList.getListeners(IPropertyToolbarListener.class))
-                .forEach(l->l.onPropertyChangedEvent(property, value));
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        model.setProperties(properties);
-        updateGui();
-    }
-
     private void updateGui() {
-        Platform.runLater(()->{
-
             mainPane = new VBox();
             GridPane grid = new GridPane();
 
@@ -85,7 +77,24 @@ public class PropertyToolbar {
             validationButton.setOnAction((event -> applyChanges()));
 
             mainPane.getChildren().addAll(grid, validationButton);
-        });
+    }
+
+    public Pane getContent(){
+        return mainPane;
+    }
+
+    public void addListener(IPropertyToolbarListener l){
+        eventListenerList.add(IPropertyToolbarListener.class, l);
+    }
+
+    private void firePropertyChangedEvent(String property, String value) {
+        Arrays.stream(eventListenerList.getListeners(IPropertyToolbarListener.class))
+                .forEach(l->l.onPropertyChangedEvent(property, value));
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        model.setProperties(properties);
+        updateGui();
     }
 
     public interface IPropertyToolbarListener extends EventListener{

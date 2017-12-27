@@ -17,13 +17,6 @@ public class PropertyToolbarModel {
         properties = new HashMap<>();
         tempBuffer = new HashMap<>();
         eventListenerList = new EventListenerList();
-
-        //TODO remove hard-coded datas
-        properties.put("property_1", "value_1");
-        properties.put("property_2", "value_2");
-        properties.put("property_3", "value_3");
-        properties.put("property_4", "value_4");
-        properties.put("property_5", "value_5");
     }
 
     public Map<String, String> getProperties(){
@@ -62,5 +55,6 @@ public class PropertyToolbarModel {
 
     public interface IPropertyToolbarModelListener extends EventListener{
         void onPropertyChangedEvent(String property, String newValue);
+        void onPropertiesChangedEvent();
     }
 }
