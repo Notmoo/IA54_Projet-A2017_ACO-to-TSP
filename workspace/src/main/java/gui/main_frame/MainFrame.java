@@ -68,7 +68,6 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     }
 
     private void updateScreen(){
-        System.out.println("update requested | current : "+currentScreen+" | requested : "+requestedScreen);
         if(!currentScreen.equals(requestedScreen)){
             switch(requestedScreen){
                 case GRAPH_STRING_ID :
