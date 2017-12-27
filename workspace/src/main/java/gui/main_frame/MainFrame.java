@@ -207,7 +207,7 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         graph.applyUpdate();
 
         if(best){
-            //TODO update chart
+            chart.addNextDistance(dist);
         }
     }
 
