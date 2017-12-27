@@ -16,10 +16,15 @@ import java.nio.file.Path
 import io.sarl.core.DefaultContextInteractions
 import gui.main_frame.MainFrame
 import io.sarl.core.Schedules
+import interfaces.ITSPDisplayerCallback
+import io.sarl.core.Lifecycle
 
 // XXX remove theses events (placeholders)
 event DisplaySolution{
-	
+	var nbNodes : short
+	var solution : Short[]
+	var distance : long
+	var isBest : boolean
 }
 
 event ClearSolutions{
@@ -53,6 +58,8 @@ event TspInputFile{
 	}
 }
 
+event ApplicationClose
+
 //-----------------------------------------
 // AGENTS
 //-----------------------------------------
@@ -61,7 +68,7 @@ event TspInputFile{
  * 
  */
 agent DisplayerAgent {
-	uses Logging, DefaultContextInteractions, Schedules
+	uses Logging, DefaultContextInteractions, Schedules, Lifecycle
 	
 	var gui : MainFrame = null
 
@@ -77,6 +84,20 @@ agent DisplayerAgent {
 			if (MainFrame.instance !== null) {
 				gui = MainFrame.instance
 				new DisplayerReady().emit
+				gui.addListener(new ITSPDisplayerCallback() {
+					def onFileInput(filePath : Path) {
+						fireInputFileRequested(filePath)
+					}
+					
+					def onGuiClose {
+						fireCloseEvent
+					}
+					
+					def onPropertyChanged(key : String, value : String) {
+						fireTspPropertyChangedEvent(key, value)
+					}
+					
+				})
 				task.cancel
 			}
 		]
@@ -138,5 +159,10 @@ agent DisplayerAgent {
 	
 	def fireTspPropertyChangedEvent(propId : String, propVal : String){
 		new TspPropertyChanged(propId, propVal).emit 	
+	}
+	
+	def fireCloseEvent(){
+		new ApplicationClose().emit
+		killMe
 	}
 }
