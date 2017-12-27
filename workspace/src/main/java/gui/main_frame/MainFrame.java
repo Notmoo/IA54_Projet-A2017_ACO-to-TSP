@@ -60,6 +60,12 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         initAndShow(primaryStage);
     }
 
+    @Override
+    public void stop(){
+        Arrays.stream(listenerList.getListeners(ITSPDisplayerCallback.class))
+                .forEach(ITSPDisplayerCallback::onGuiClose);
+    }
+
     private void updateScreen(){
         System.out.println("update requested | current : "+currentScreen+" | requested : "+requestedScreen);
         if(!currentScreen.equals(requestedScreen)){
