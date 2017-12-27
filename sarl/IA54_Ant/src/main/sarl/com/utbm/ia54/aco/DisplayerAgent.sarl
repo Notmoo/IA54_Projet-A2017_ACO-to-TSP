@@ -85,7 +85,7 @@ agent DisplayerAgent {
 	on Destroy {
 		// Event trigger when the agent is destroyed from the system.
 		// You should put all the resource releasing statements in this block of code.
-		info("The agent was stopped.")
+		info("DisplayerAgent was stopped.")
 	}
 
 	on AgentSpawned {
@@ -117,19 +117,19 @@ agent DisplayerAgent {
 	}
 	
 	on DisplaySolution{
-		//TODO
+		gui.displaySolution(occurrence.nbNodes, occurrence.solution, occurrence.distance, occurrence.isBest)
 	}
 	
 	on DisplayNodes{
-		//TODO	
+		gui.displayNodes(occurrence.nbNodes)
 	}
 	
 	on ClearSolutions{
-		//TODO	
+		gui.clearSolutions
 	}
 	
 	on ClearNodes{
-		//TODO	
+		gui.clearNodes
 	}
 	
 	def fireInputFileRequested(filePath : Path){
