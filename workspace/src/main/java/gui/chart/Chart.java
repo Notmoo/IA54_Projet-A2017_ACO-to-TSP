@@ -33,7 +33,7 @@ public class Chart {
         model = new ChartModel();
         model.addListener(new ChartModel.IChartModelListener() {
             @Override
-            public void onDataAdded(Integer iteration, Float distance) {
+            public void onDataAdded(Integer iteration, Long distance) {
                 addData(iteration, distance);
             }
 
@@ -46,15 +46,23 @@ public class Chart {
         remakeSerie();
     }
 
-    private void addData(Integer iteration, Float distance) {
-        series.getData().add(new XYChart.Data<>(iteration, distance));
+    private void addData(int iter, long distance) {
+        series.getData().add(new XYChart.Data<>(iter, distance));
     }
 
     private void remakeSerie(){
-        Platform.runLater(()->series.getData().clear());
+        Platform.runLater(()-> series.getData().clear());
         for(Integer iterNb : model.getDatas().keySet()){
             Platform.runLater(()->series.getData().add(new XYChart.Data<>(iterNb,model.getDatas().get(iterNb))));
         }
+    }
+
+    public void addNextDistance(long dist){
+        model.addData(dist);
+    }
+
+    public void clearChart(){
+        model.clear();
     }
 
     public Node getContent() {
