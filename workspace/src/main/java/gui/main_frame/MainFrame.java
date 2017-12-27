@@ -21,6 +21,7 @@ import javax.swing.event.EventListenerList;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class MainFrame extends Application implements ITSPDisplayer  {
@@ -182,6 +183,15 @@ public class MainFrame extends Application implements ITSPDisplayer  {
             graph.addCell(convertToCellTag(s, nodes.get(s)), CellType.SIMPLE);
         }
         graph.applyUpdate();
+    }
+
+    @Override
+    public void displayNodes(short nbNodes) {
+        Map<Short, String> nodes = new HashMap<>();
+        for(short i = 1; i<=nbNodes; i++){
+            nodes.put(i, "Node n°"+i);
+        }
+        displayNodes(nodes);
     }
 
     @Override
