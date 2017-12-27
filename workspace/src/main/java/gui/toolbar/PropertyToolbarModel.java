@@ -55,6 +55,11 @@ public class PropertyToolbarModel {
         tempBuffer.put(property, value);
     }
 
+    public void setProperties(Map<String,String> properties) {
+        this.properties.clear();
+        this.properties.putAll(properties);
+    }
+
     public interface IPropertyToolbarModelListener extends EventListener{
         void onPropertyChangedEvent(String property, String newValue);
     }

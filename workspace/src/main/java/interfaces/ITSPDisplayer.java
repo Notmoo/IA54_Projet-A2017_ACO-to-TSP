@@ -3,6 +3,8 @@ package interfaces;
 import java.util.Map;
 
 public interface ITSPDisplayer {
+    void setProperties(Map<String, String> properties);
+
     void displayNodes(Map<Short, String> nodes);
     void clearNodes();
 

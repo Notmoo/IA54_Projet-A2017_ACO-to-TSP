@@ -1,5 +1,6 @@
 package gui.toolbar;
 
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -26,27 +27,6 @@ public class PropertyToolbar {
         model = new PropertyToolbarModel();
         model.addListener(this::updateGui);
         guiProperties = new HashMap<>();
-
-        mainPane = new VBox();
-        GridPane grid = new GridPane();
-
-        int rowCount = 0;
-        for(String key : model.getProperties().keySet()){
-            Label label = new Label(key);
-            TextField value = new TextField(model.getProperties().get(key));
-
-
-            grid.add(label,0, rowCount);
-            grid.add(value, 1, rowCount);
-            guiProperties.put(label, value);
-
-            rowCount++;
-        }
-
-        Button validationButton = new Button("Valider");
-        validationButton.setOnAction((event -> applyChanges()));
-
-        mainPane.getChildren().addAll(grid, validationButton);
     }
 
     private void applyChanges() {
@@ -75,6 +55,37 @@ public class PropertyToolbar {
     private void firePropertyChangedEvent(String property, String value) {
         Arrays.stream(eventListenerList.getListeners(IPropertyToolbarListener.class))
                 .forEach(l->l.onPropertyChangedEvent(property, value));
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        model.setProperties(properties);
+        updateGui();
+    }
+
+    private void updateGui() {
+        Platform.runLater(()->{
+
+            mainPane = new VBox();
+            GridPane grid = new GridPane();
+
+            int rowCount = 0;
+            for(String key : model.getProperties().keySet()){
+                Label label = new Label(key);
+                TextField value = new TextField(model.getProperties().get(key));
+
+
+                grid.add(label,0, rowCount);
+                grid.add(value, 1, rowCount);
+                guiProperties.put(label, value);
+
+                rowCount++;
+            }
+
+            Button validationButton = new Button("Valider");
+            validationButton.setOnAction((event -> applyChanges()));
+
+            mainPane.getChildren().addAll(grid, validationButton);
+        });
     }
 
     public interface IPropertyToolbarListener extends EventListener{

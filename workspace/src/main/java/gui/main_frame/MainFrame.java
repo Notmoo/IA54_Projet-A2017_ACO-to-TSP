@@ -172,6 +172,11 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     }
 
     @Override
+    public void setProperties(Map<String, String> properties) {
+        toolbar.setProperties(properties);
+    }
+
+    @Override
     public void displayNodes(Map<Short, String> nodes) {
         for(short s : nodes.keySet()){
             graph.addCell(convertToCellTag(s, nodes.get(s)), CellType.SIMPLE);
