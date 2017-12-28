@@ -32,6 +32,10 @@ event poc{
 	
 }
 
+event change_tsp_version{
+	var version_nb : int
+}
+
 //-----------------------------------------
 //		AGENTS
 //-----------------------------------------
@@ -66,5 +70,14 @@ agent AntAgent{
 	
 	on ApplicationClose{
 		killMe
+	}
+	
+	on change_tsp_version{
+		if (occurrence.version_nb === 0) {
+			new SimpleTSPPathFinder().setSkill(TSPPathFinder)
+		}
+		if (occurrence.version_nb === 1) {
+			new BottleneckTSPPathFinder().setSkill(TSPPathFinder)
+		}
 	}
 }
