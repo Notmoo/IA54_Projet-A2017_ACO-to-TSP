@@ -5,7 +5,7 @@ import io.sarl.core.Destroy
 import io.sarl.core.DefaultContextInteractions
 import java.util.UUID
 import java.util.Random
-
+import io.sarl.core.Lifecycle
 
 //XXX remove theses events (placeholders)
 event find_path {
@@ -36,7 +36,7 @@ event poc{
 //		AGENTS
 //-----------------------------------------
 agent AntAgent{
-	uses DefaultContextInteractions, TSPPathFinder
+	uses DefaultContextInteractions, TSPPathFinder, Lifecycle
 	
 	var envUUID : UUID
 	
@@ -62,5 +62,9 @@ agent AntAgent{
 			]
 			new poc().emit[it.UUID === occurrence.source.UUID]
 		}
+	}
+	
+	on ApplicationClose{
+		killMe
 	}
 }

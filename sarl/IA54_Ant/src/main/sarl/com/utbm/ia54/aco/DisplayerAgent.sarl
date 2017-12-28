@@ -96,7 +96,6 @@ agent DisplayerAgent {
 					def onPropertyChanged(key : String, value : String) {
 						fireTspPropertyChangedEvent(key, value)
 					}
-					
 				})
 				task.cancel
 			}
