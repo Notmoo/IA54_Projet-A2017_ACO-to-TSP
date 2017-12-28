@@ -15,26 +15,24 @@ public class ChartModel {
         datas = new HashMap<>();
     }
 
-    public void addData(long distance){
+    void addData(long distance){
         datas.put(++iterationNb, distance);
         Arrays.stream(listenerList.getListeners(IChartModelListener.class))
                 .forEach(l->l.onDataAdded(iterationNb, distance));
     }
 
-    public void addListener(IChartModelListener l){
+    void addListener(IChartModelListener l){
         listenerList.add(IChartModelListener.class, l);
     }
 
-    public Integer getCurrentIterationNumber(){
-        return iterationNb;
-    }
-
-    public Map<Integer, Long> getDatas() {
+    Map<Integer, Long> getDatas() {
         return datas;
     }
 
-    public void clear() {
-        //TODO clear chart
+    void clear() {
+        datas.clear();
+        Arrays.stream(listenerList.getListeners(IChartModelListener.class))
+                .forEach(IChartModelListener::onDataModified);
     }
 
     public interface IChartModelListener extends EventListener {
