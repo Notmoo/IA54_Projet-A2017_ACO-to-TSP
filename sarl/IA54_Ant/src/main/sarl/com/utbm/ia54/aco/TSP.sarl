@@ -43,8 +43,7 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		solution.set(0, idFirstNode)
 		
 		for(step = 1; step < nbNodes; step++){
-			var temp_node_id : short = 0 as short
-			temp_node_id-- // workaround du bug d'assignation de valeur négatives aux variables short
+			var temp_node_id : short = (-1) as short
 			
 			do{
 				if(step === nbNodes-1 && idLastNode!=-1){
@@ -53,6 +52,7 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 					temp_node_id = findNext(nbNodes, computeProbabilities(nbNodes, env.get(solution.get(step-1)), visited, idLastNode))
 				}
 			}while(temp_node_id===-1)
+			dist += env.get(solution.get(step - 1)).get(temp_node_id).get(0)
 		}
 		
 		return new tsp_path(nbNodes, solution, dist)
