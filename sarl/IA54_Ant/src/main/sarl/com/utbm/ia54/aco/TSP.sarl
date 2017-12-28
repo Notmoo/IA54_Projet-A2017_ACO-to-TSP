@@ -102,5 +102,37 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		
 		return id
 	}
+}
+
+skill BottleneckTSPPathFinder implements TSPPathFinder{
+	uses SimpleTSPPathFinder
+
+	// TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : tsp_path {
+		var visited = ArrayFactory.newBooleanArray(nbNodes)
+		var solution = ArrayFactory.newShortArray(nbNodes)
+		var step : int
+		var dist : double = 0
+
+		solution.set(0, idFirstNode)
+
+		for (step = 1; step < nbNodes; step++) {
+			var temp_node_id : short = (-1) as short
+			
+			do {
+				if (step === nbNodes - 1 && idLastNode != -1) {
+					temp_node_id = idLastNode
+				} else {
+					temp_node_id = findNext(nbNodes,
+						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode))
+				}
+			} while (temp_node_id === -1)
+			val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
+			if(temp_dist<dist)
+				dist = temp_dist
+		}
+
+		return new tsp_path(nbNodes, solution, dist)
+	}
 	
 }
