@@ -1,0 +1,111 @@
+package com.utbm.ia54.aco
+
+import io.sarl.core.Destroy
+import io.sarl.core.Initialize
+import io.sarl.core.Logging
+import io.sarl.core.Lifecycle
+import io.sarl.core.DefaultContextInteractions
+import java.util.UUID
+
+/** 
+ * @author Mara
+ */
+ 
+agent Environment {
+	uses Logging, Lifecycle, DefaultContextInteractions
+	
+	/***********************************************************************/
+	 
+	var env : float[][][] //trois dim, a voir avec Cess pour implémenter ce qu'il a fait
+	var nbNodes : short
+	var nbAnts : int // nombre de fourmie
+	var Q = 1 // valeur a régler
+	
+	var alpha = 1 // Variable pour l'importance de la distance
+	var betha = 0.5f // Variable pour l'évaporation
+	
+	var solution : float[][]
+	var distanceMin : double
+	
+	/***********************************************************************/
+
+	on Initialize {
+		loggingName = "Environment"
+		
+		if (!occurrence.parameters.isEmpty) {
+			nbAnts = occurrence.parameters.get(0) as Integer
+		}
+		
+		spawn(Scheduler, nbAnts) // nbAnts à passer en paramètre
+
+		distanceMin = 0
+	}
+	
+	on NewEnvironment {
+		sendToZero()
+		env = occurrence.env
+		nbNodes = occurrence.nbNodes
+		distanceMin = 0
+		
+		emit(new Updated(env, nbNodes))
+	}
+
+	on Destroy {
+	}
+	
+	on RequestUpdate {
+		
+		sendToZero()
+		if (env.isEmpty) {
+			var senderID = occurrence.source.UUID
+			emit(new Updated(env, nbNodes))[it.UUID == senderID]			
+		}
+	}
+	
+	on TspPath {
+		var senderID = occurrence.source.UUID
+		
+		var newDist = occurrence.distance
+		
+		if(distanceMin == 0 || distanceMin > newDist){
+			distanceMin = newDist
+		}
+		
+		updateSolution(occurrence.nodes, occurrence.nbNodes);
+
+		emit(new AckSolution)[it.UUID == senderID]	
+	}
+	
+	on IterationFinished{
+		updateEnvironment()
+	}
+	
+	/***********************************************************************/
+	
+	def updateSolution(nodes : short[], nbNode : short){
+		for (var i = 0; i < nbNode - 1; i++){
+			var beginNode = nodes.get(i)
+			var finishNode = nodes.get(i+1)
+
+			var value = solution.get(beginNode).get(finishNode) + 1
+			
+			solution.get(beginNode).set(finishNode, value)
+		}		
+	}
+	
+	def updateEnvironment(){
+		for (var i = 0; i< nbNodes ; i++){
+			for (var j = 0; j<nbNodes; j++){
+				env.get(i).get(j).set(1, betha * (env.get(i).get(j).get(1) + alpha * solution.get(i).get(j)/env.get(i).get(j).get(0)))
+			}
+		}
+	}
+	
+	def sendToZero(){
+		for (var i = 0; i < nbNodes; i++) {
+			for (var j = 0; j < nbNodes; j++){
+				solution.get(i).set(j, 0f)
+			}
+		}
+	}
+}

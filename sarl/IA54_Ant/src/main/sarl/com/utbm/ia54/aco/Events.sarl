@@ -1,0 +1,116 @@
+package com.utbm.ia54.aco
+
+import java.nio.file.Path
+
+event NewEnvironment {
+	var env : float[][][]
+	var nbNodes : short
+
+	new (e : float[][][], nb : short) {
+		env = e
+		nbNodes = nb
+	}
+}
+
+event RequestUpdate
+
+event Updated{
+	var env : float[][][]
+	var nbNodes : short
+	
+	new (e : float[][][], nb : short){
+		env = e
+		nbNodes = nb
+	}
+}
+
+/*
+ * Event envoyé au ants pour les informer de l'env
+ */
+event IterationStart {
+	var nbNodes : short
+	var env : float[][][]
+	var idFirstNode : short
+	var idLastNode : short
+	
+	new (nb : short, e : float[][][], idFN : short, idLN : short){
+		nbNodes = nb;
+		env = e
+		idFirstNode = idFN
+		idLastNode = idLN
+		
+	}
+}
+
+event AntCreated
+
+event AntFinished
+
+/* Event à envoyer au displayer
+ * bestSolution: défini si la solution est celle de la convergence ou non
+ */
+
+event DisplaySolution {
+	val nbNodes : short
+	val nodes : short[] // liste des noeux classer dans ordre de passage
+	val distance : double
+	val bestSolution : boolean
+
+	new (nb : short, n : short[], d : double, bs : boolean) {
+		nbNodes = nb
+		nodes = n
+		distance = d
+		bestSolution = bs
+	}
+}
+
+/*
+ * Pour l'affichage des nodes
+ */
+event DisplayNodes{
+	val nodes : short[]
+	val nbNodes : short
+	
+	new (nb : short, n : short[]){
+		nbNodes = nb
+		nodes = n
+	}
+}
+
+event ClearNodes
+
+event ClearSolutions
+
+event TspPropertyChanged{
+	val property_id : String
+	val property_value : String
+	
+	new (id : String, value : String) {
+		property_id = id
+		property_value = value
+	}
+}
+
+event TspInputFile{
+	val path : Path
+	
+	new (p : Path){
+		path = p
+	}
+}
+
+event TspPath{
+	val nbNodes : short
+	val nodes: short[] //liste des noeux classer dans ordre de passage
+	val distance : double	
+	
+	new (nb : short, n : short[], d : double) {
+		nbNodes = nb
+		nodes = n
+		distance = d
+	}
+}
+
+event AckSolution
+
+event IterationFinished

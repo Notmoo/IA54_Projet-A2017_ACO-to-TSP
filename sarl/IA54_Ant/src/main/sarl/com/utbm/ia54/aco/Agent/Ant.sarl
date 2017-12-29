@@ -5,62 +5,44 @@ import io.sarl.core.Destroy
 import io.sarl.core.DefaultContextInteractions
 import java.util.UUID
 import java.util.Random
-
-
-//XXX remove theses events (placeholders)
-event find_path {
-	var nbNodes : short
-	var env : float[][][]
-	var idFirstNode : short
-	var idLastNode : short
-}
-
-event ack_solution {
-}
-
-event register{
-	
-}
-
-event ack_register {
-}
-
-event ack_unregister {
-}
-
-event poc{
-	
-}
+import io.sarl.core.Logging
 
 //-----------------------------------------
 //		AGENTS
 //-----------------------------------------
 agent AntAgent{
-	uses DefaultContextInteractions, TSPPathFinder
+	uses Logging, DefaultContextInteractions, TSPPathFinder
 	
 	var envUUID : UUID
 	
-	on Initialize{
+	on Initialize {
+		if (!occurrence.parameters.isEmpty) {
+			var numAnt = occurrence.parameters.get(0) as Integer
+			loggingName = "Ant_" + numAnt.toString
+		}
+		
+		// TODO ajouter un else pour le cas où l'init est mal faite
+		
 		new SimpleTSPPathFinder().setSkill(TSPPathFinder)
-		new register().emit
+		new AntCreated().emit
 	}
 	
 	on Destroy {
 		
 	}
 	
-	on find_path {
+	on IterationStart {
 		if(occurrence.idFirstNode!=-1){
 			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode).emit[
 				it.UUID === envUUID
 			]
-			new poc().emit[it.UUID === occurrence.source.UUID]
+			new AntFinished().emit[it.UUID === occurrence.source.UUID]
 		}else{
 			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
 			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode).emit [
 				it.UUID === envUUID
 			]
-			new poc().emit[it.UUID === occurrence.source.UUID]
+			new AntFinished().emit[it.UUID === occurrence.source.UUID]
 		}
 	}
 }

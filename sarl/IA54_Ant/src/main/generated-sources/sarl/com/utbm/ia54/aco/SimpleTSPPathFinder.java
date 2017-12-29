@@ -1,8 +1,8 @@
 package com.utbm.ia54.aco;
 
 import com.utbm.ia54.aco.TSPPathFinder;
+import com.utbm.ia54.aco.TspPath;
 import com.utbm.ia54.aco.java.ArrayFactory;
-import com.utbm.ia54.aco.tsp_path;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -19,7 +19,7 @@ import java.util.Random;
 @SarlElementType(20)
 @SuppressWarnings("all")
 public class SimpleTSPPathFinder extends Skill implements TSPPathFinder {
-  public tsp_path findPath(final short nbNodes, final float[][][] env, final short idFirstNode, final short idLastNode) {
+  public TspPath findPath(final short nbNodes, final float[][][] env, final short idFirstNode, final short idLastNode) {
     boolean[] visited = ArrayFactory.newBooleanArray(nbNodes);
     short[] solution = ArrayFactory.newShortArray(nbNodes);
     int step = 0;
@@ -38,7 +38,7 @@ public class SimpleTSPPathFinder extends Skill implements TSPPathFinder {
         } while((temp_node_id == (-1)));
       }
     }
-    return new tsp_path(nbNodes, solution, dist);
+    return new TspPath(nbNodes, solution, dist);
   }
   
   public double[] computeProbabilities(final short nbNodes, final float[][] destinations, final boolean[] visited, final short idLastNode) {
