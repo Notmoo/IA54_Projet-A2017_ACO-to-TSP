@@ -2,109 +2,41 @@ package com.utbm.ia54.aco.Agent
 
 import io.sarl.core.Destroy
 import io.sarl.core.Initialize
-import io.sarl.core.Logging
-import io.sarl.core.Lifecycle
 import io.sarl.core.DefaultContextInteractions
+import io.sarl.core.Behaviors
+import com.utbm.ia54.aco.SimpleTSPEnvironment
+import com.utbm.ia54.aco.ChangeTspVersion
+import com.utbm.ia54.aco.TWTSPEnvironment
 
 /** 
  * @author Mara
  */
  
 agent Environment {
-	uses Logging, Lifecycle, DefaultContextInteractions
-	
-	/***********************************************************************/
-	 
-	var env : float[][][] //trois dim, a voir avec Cess pour implémenter ce qu'il a fait
-	var nbNodes : short
-	var nbAnts : int // nombre de fourmie
-	var Q = 1 // valeur a régler
-	
-	var alpha = 1 // Variable pour l'importance de la distance
-	var betha = 0.5f // Variable pour l'évaporation
-	
-	var solution : float[][]
-	var distanceMin : double
-	
-	/***********************************************************************/
+	uses DefaultContextInteractions, Behaviors
+
+	var tspVersion : int
+	var simpleBehavior : SimpleTSPEnvironment
+	var twBehavior : TWTSPEnvironment
 
 	on Initialize {
-		loggingName = "Environment"
-		
-		if (!occurrence.parameters.isEmpty) {
-			nbAnts = occurrence.parameters.get(0) as Integer
-		}
-		
-		spawn(Scheduler, nbAnts) // nbAnts à passer en paramètre
-
-		distanceMin = 0
+		simpleBehavior = new SimpleTSPEnvironment(this)
+		twBehavior = new TWTSPEnvironment(this)
 	}
 	
-	on com.utbm.ia54.aco.NewEnvironment {
-		sendToZero()
-		env = occurrence.env
-		nbNodes = occurrence.nbNodes
-		distanceMin = 0
-		
-		emit(new com.utbm.ia54.aco.Updated(env, nbNodes))
+	on ChangeTspVersion {
+		if (occurrence.version_nb === 0 && tspVersion !== 0) {
+			simpleBehavior.registerBehavior
+			twBehavior.unregisterBehavior
+		} else if (occurrence.version_nb === 1 && tspVersion !== 1) {
+			simpleBehavior.registerBehavior
+			twBehavior.unregisterBehavior
+		} else if (occurrence.version_nb === 2 && tspVersion !== 2) {
+			simpleBehavior.unregisterBehavior
+			twBehavior.registerBehavior
+		}
 	}
 
 	on Destroy {
-	}
-	
-	on com.utbm.ia54.aco.RequestUpdate {
-		
-		sendToZero()
-		if (env.isEmpty) {
-			var senderID = occurrence.source.getUUID
-			emit(new com.utbm.ia54.aco.Updated(env, nbNodes))[it.getUUID == senderID]			
-		}
-	}
-	
-	on com.utbm.ia54.aco.TspPath {
-		var senderID = occurrence.source.getUUID
-		
-		var newDist = occurrence.distance
-		
-		if(distanceMin == 0 || distanceMin > newDist){
-			distanceMin = newDist
-		}
-		
-		updateSolution(occurrence.nodes, occurrence.nbNodes);
-
-		emit(new com.utbm.ia54.aco.AckSolution)[it.getUUID == senderID]	
-	}
-	
-	on com.utbm.ia54.aco.IterationFinished{
-		updateEnvironment()
-	}
-	
-	/***********************************************************************/
-	
-	def updateSolution(nodes : short[], nbNode : short){
-		for (var i = 0; i < nbNode - 1; i++){
-			var beginNode = nodes.get(i)
-			var finishNode = nodes.get(i+1)
-
-			var value = solution.get(beginNode).get(finishNode) + 1
-			
-			solution.get(beginNode).set(finishNode, value)
-		}		
-	}
-	
-	def updateEnvironment(){
-		for (var i = 0; i< nbNodes ; i++){
-			for (var j = 0; j<nbNodes; j++){
-				env.get(i).get(j).set(1, betha * (env.get(i).get(j).get(1) + alpha * solution.get(i).get(j)/env.get(i).get(j).get(0)))
-			}
-		}
-	}
-	
-	def sendToZero(){
-		for (var i = 0; i < nbNodes; i++) {
-			for (var j = 0; j < nbNodes; j++){
-				solution.get(i).set(j, 0f)
-			}
-		}
 	}
 }

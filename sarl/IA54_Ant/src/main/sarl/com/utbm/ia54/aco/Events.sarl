@@ -24,6 +24,16 @@ event Updated{
 	}
 }
 
+event TWUpdated extends Updated{
+	var timeWindows : float[][]
+	var timeStamp : float
+
+	new (e : float[][][], nb : short, tw : float[][], ts : float) {
+		super(e, nb)
+		timeWindows = tw
+		timeStamp = ts
+	}
+}
 /*
  * Event envoyé au ants pour les informer de l'env
  */
