@@ -27,7 +27,8 @@ event Updated{
 /*
  * Event envoyé au ants pour les informer de l'env
  */
-event IterationStart {
+ //Version classique de l'événement, utilisée pour les impl les plus courantes
+event SimpleIterationStart {
 	var nbNodes : short
 	var env : float[][][]
 	var idFirstNode : short
@@ -39,6 +40,18 @@ event IterationStart {
 		idFirstNode = idFN
 		idLastNode = idLN
 		
+	}
+}
+
+//Version de l'événement destinée aux problèmes avec horaires de livraison (TW -> Time Window)
+event TWIterationStart extends SimpleIterationStart{
+	var timeWindows : float[][]
+	var initialTimeStamp : float
+
+	new (nb : short, e : float[][][], idFN : short, idLN : short, tw : float[][], its : float) {
+		super(nb, e, idFN, idLN)
+		timeWindows = tw
+		initialTimeStamp = its
 	}
 }
 

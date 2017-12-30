@@ -7,6 +7,12 @@ import io.sarl.core.Initialize
 import io.sarl.core.Logging
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Lifecycle
+import com.utbm.ia54.aco.Updated
+import com.utbm.ia54.aco.AntCreated
+import com.utbm.ia54.aco.RequestUpdate
+import com.utbm.ia54.aco.AntFinished
+import com.utbm.ia54.aco.IterationFinished
+import com.utbm.ia54.aco.SimpleIterationStart
 
 /** 
  * @author Mara
@@ -33,28 +39,28 @@ agent Scheduler {
 		}
 	}
 	
-	on com.utbm.ia54.aco.Updated {
+	on Updated {
 		var env = occurrence.env
 		var nbNodes = occurrence.nbNodes
 
-		var newEvent = new com.utbm.ia54.aco.IterationStart(nbNodes, env, (-1) as short, (-1) as short)
+		var newEvent = new SimpleIterationStart(nbNodes, env, (-1) as short, (-1) as short)
 		emit(newEvent)
 	}
 	
-	on com.utbm.ia54.aco.AntCreated {
+	on AntCreated {
 		nbAntsCreated ++
 		if (nbAntsCreated >= nbAnts) {
 			nbAntsCreated = 0;
-			emit(new com.utbm.ia54.aco.RequestUpdate);	
+			emit(new RequestUpdate);	
 		}
 	}
 	
-	on com.utbm.ia54.aco.AntFinished {
+	on AntFinished {
 		nbAntsAck++
 		
 		if (nbAntsAck >= nbAnts) {
 			nbAntsAck = 0
-			emit(new com.utbm.ia54.aco.IterationFinished)
+			emit(new IterationFinished)
 		}
 	}
 }
