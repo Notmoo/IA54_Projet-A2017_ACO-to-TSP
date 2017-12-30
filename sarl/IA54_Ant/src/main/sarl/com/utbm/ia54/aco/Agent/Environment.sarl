@@ -2,7 +2,6 @@ package com.utbm.ia54.aco.Agent
 
 import io.sarl.core.Destroy
 import io.sarl.core.Initialize
-import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.SimpleTSPEnvironment
 import com.utbm.ia54.aco.ChangeTspVersion
@@ -13,7 +12,7 @@ import com.utbm.ia54.aco.TWTSPEnvironment
  */
  
 agent Environment {
-	uses DefaultContextInteractions, Behaviors
+	uses Behaviors
 
 	var tspVersion : int
 	var simpleBehavior : SimpleTSPEnvironment
