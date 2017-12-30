@@ -46,6 +46,15 @@ event AntCreated
 
 event AntFinished
 
+event ChangeTspVersion {
+	var version_nb : int
+}
+
+//Event envoyé par l'EnvAgent en réponse à un event AntCreated
+//Permet aux AntAgent de connaitre l'UUID de l'EnvAgent
+
+event AntCreatedAck
+
 /* Event à envoyer au displayer
  * bestSolution: défini si la solution est celle de la convergence ou non
  */

@@ -2,7 +2,8 @@ package com.utbm.ia54.aco
 
 import com.utbm.ia54.aco.java.ArrayFactory
 import java.util.Random
-
+import io.sarl.core.DefaultContextInteractions
+import java.util.UUID
 
 /* ---------------------------
  * CAPACITIES
@@ -17,6 +18,9 @@ capacity TSPPathFinder{
  * ---------------------------
  */
 skill SimpleTSPPathFinder implements TSPPathFinder {
+	uses DefaultContextInteractions
+	
+	var envUUID : UUID
 	
 	//TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath {
@@ -87,12 +91,32 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		
 		return id
 	}
+
+	on IterationStart {
+		if (occurrence.idFirstNode != -1) {
+			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode).emit[
+				it.getUUID === envUUID
+			]
+			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
+		} else {
+			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
+			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode).emit [
+				it.getUUID === envUUID
+			]
+			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
+		}
+	}
+	
+	on AntCreatedAck {
+		envUUID = occurrence.source.UUID	
+	}
 }
 
 skill BottleneckTSPPathFinder implements TSPPathFinder{
 	uses SimpleTSPPathFinder
 
 	// TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
+	@Override
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)

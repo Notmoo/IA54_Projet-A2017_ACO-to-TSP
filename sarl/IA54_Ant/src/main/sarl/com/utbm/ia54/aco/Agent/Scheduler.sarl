@@ -7,7 +7,6 @@ import io.sarl.core.Initialize
 import io.sarl.core.Logging
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Lifecycle
-import com.utbm.ia54.aco.AntAgent
 
 /** 
  * @author Mara
