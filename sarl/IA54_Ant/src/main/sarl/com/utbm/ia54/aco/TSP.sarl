@@ -3,28 +3,13 @@ package com.utbm.ia54.aco
 import com.utbm.ia54.aco.java.ArrayFactory
 import java.util.Random
 
-/* ---------------------------
- * EVENTS
- * ---------------------------
- */
-event tsp_path {
-	val nbNodes : short
-	val nodes : short[]
-	val dist : double
-	
-	new(nbNodes : short, nodes : short[], dist : double) {
-		this.nbNodes = nbNodes
-		this.nodes = nodes
-		this.dist = dist
-	}
-}
 
 /* ---------------------------
  * CAPACITIES
  * ---------------------------
  */
 capacity TSPPathFinder{
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : tsp_path
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath
 }
 
 /* ---------------------------
@@ -34,7 +19,7 @@ capacity TSPPathFinder{
 skill SimpleTSPPathFinder implements TSPPathFinder {
 	
 	//TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : tsp_path {
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
@@ -55,7 +40,7 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 			dist += env.get(solution.get(step - 1)).get(temp_node_id).get(0)
 		}
 		
-		return new tsp_path(nbNodes, solution, dist)
+		return new TspPath(nbNodes, solution, dist)
 	}
 	
 	def computeProbabilities (nbNodes : short, destinations : float[][], visited : boolean[], idLastNode : short) : double[] {
@@ -108,7 +93,7 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 	uses SimpleTSPPathFinder
 
 	// TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : tsp_path {
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
@@ -132,7 +117,7 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 				dist = temp_dist
 		}
 
-		return new tsp_path(nbNodes, solution, dist)
+		return new TspPath(nbNodes, solution, dist)
 	}
 	
 }
