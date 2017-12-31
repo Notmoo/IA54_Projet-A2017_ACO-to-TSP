@@ -4,12 +4,20 @@ public final class ArrayFactory {
 
 	private ArrayFactory() {}
 	
-	public static double[][][] newEnvDoubleMatrix(short nbNodes){
+	public static double[][][] newEnvDouble3DMatrix(short nbNodes){
 		return new double[nbNodes][nbNodes][2];
 	}
 	
-	public static float[][][] newEnvFloatMatrix(short nbNodes){
+	public static float[][][] newEnvFloat3DMatrix(short nbNodes){
 		return new float[nbNodes][nbNodes][2];
+	}
+	
+	public static double[][] newEnvDouble2DMatrix(short nbNodes){
+		return new double[nbNodes][2];
+	}
+	
+	public static float[][] newEnvFloat2DMatrix(short nbNodes){
+		return new float[nbNodes][2];
 	}
 	
 	public static boolean[] newBooleanArray(short size) {
