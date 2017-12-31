@@ -13,6 +13,9 @@ import com.utbm.ia54.aco.RequestUpdate
 import com.utbm.ia54.aco.AntFinished
 import com.utbm.ia54.aco.IterationFinished
 import com.utbm.ia54.aco.SimpleIterationStart
+import com.utbm.ia54.aco.TWUpdated
+import com.utbm.ia54.aco.TWIterationStart
+import com.utbm.ia54.aco.ChangeTspVersion
 
 /** 
  * @author Mara
@@ -45,6 +48,17 @@ agent Scheduler {
 
 		var newEvent = new SimpleIterationStart(nbNodes, env, (-1) as short, (-1) as short)
 		emit(newEvent)
+	}
+	
+	on TWUpdated {
+		new TWIterationStart(
+			occurrence.nbNodes,
+			occurrence.env,
+			 (-1) as short, 
+			 (-1) as short, 
+			 occurrence.timeWindows, 
+			 occurrence.timeStamp
+		).emit
 	}
 	
 	on AntCreated {
