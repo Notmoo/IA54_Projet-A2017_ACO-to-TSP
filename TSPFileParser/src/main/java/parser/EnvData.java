@@ -1,3 +1,5 @@
+package parser;
+
 public class EnvData {
 
     private float env[][][];
