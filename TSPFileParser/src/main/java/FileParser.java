@@ -17,8 +17,8 @@ public class FileParser {
 
     }
 
-    public static Pair<Short,Float[][][]> loadEnv(String path, float defaultPheromoneLevel) throws IOException {
-        Float env[][][];
+    public static EnvData loadEnv(String path, float defaultPheromoneLevel) throws IOException {
+        float env[][][];
         Wrapper<Short> nbNodesWrapper = new Wrapper<>((short)-1);
         List<List<String>> lines = new ArrayList<>();
         Wrapper<Boolean> parseAsDistMatrixLineWrapper = new Wrapper<>(false);
@@ -43,7 +43,7 @@ public class FileParser {
         });
 
         if(nbNodesWrapper.get()>0) {
-            env = new Float[nbNodesWrapper.get()][nbNodesWrapper.get()][2];
+            env = new float[nbNodesWrapper.get()][nbNodesWrapper.get()][2];
             for (short i = 0; i < nbNodesWrapper.get(); i++) {
                 for (short j = 0; j < nbNodesWrapper.get(); j++) {
                     env[i][j][0] = Float.parseFloat(lines.get(i).get(j));
@@ -53,15 +53,11 @@ public class FileParser {
         }else{
             throw new IllegalStateException("number of nodes invalid : "+nbNodesWrapper.get());
         }
-        return new Pair<>(nbNodesWrapper.get(), env);
+        return new EnvData(env, nbNodesWrapper.get(), 0);
     }
 
     private static class Wrapper<T>{
         private T value;
-
-        Wrapper() {
-            this.value = null;
-        }
 
         Wrapper(T value) {
             this.value = value;
