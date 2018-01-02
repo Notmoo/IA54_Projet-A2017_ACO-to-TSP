@@ -19,9 +19,12 @@ abstract behavior AbstractTSPEnvironment {
 	protected var Q = 1 // valeur a régler
 	protected var alpha = 1 // Variable pour l'importance de la distance
 	protected var betha = 0.5f // Variable pour l'évaporation
+	protected var defaultPheromoneLevel : float = 1.0f
+	
 	
 	protected var solution : float[][]
 	protected var distanceMin : double
+
 	/********************************************************************** 
 	 */
 	on Initialize {
@@ -32,16 +35,11 @@ abstract behavior AbstractTSPEnvironment {
 		}
 
 		spawn(Scheduler, nbAnts) // nbAnts à passer en paramètre
-		distanceMin = 0
-	}
-
-	on com.utbm.ia54.aco.NewEnvironment {
-		sendToZero()
-		env = occurrence.env
-		nbNodes = occurrence.nbNodes
-		distanceMin = 0
-
-		sendUpdateEvent
+		distanceMin = -1
+		Q = 1
+		alpha = 1
+		betha = 0.5f
+		
 	}
 
 	on Destroy {
@@ -60,7 +58,7 @@ abstract behavior AbstractTSPEnvironment {
 
 		var newDist = occurrence.distance
 
-		if (distanceMin == 0 || distanceMin > newDist) {
+		if (distanceMin === -1 || distanceMin > newDist) {
 			distanceMin = newDist
 		}
 
@@ -119,6 +117,19 @@ behavior SimpleTSPEnvironment extends AbstractTSPEnvironment {
 	
 	def sendUpdateEvent(uuid : UUID) {
 		new Updated(env, nbNodes).emit[it.UUID === uuid]
+	}
+
+	on com.utbm.ia54.aco.NewEnvironment [isFromMe] {
+		sendToZero()
+		env = occurrence.env
+		nbNodes = occurrence.nbNodes
+		distanceMin = 0
+
+		sendUpdateEvent
+	}
+
+	on TspInputFile {
+		FileParser.loadEnv(occurrence.path.toString, defaultPheromoneLevel)
 	}
 	
 }
