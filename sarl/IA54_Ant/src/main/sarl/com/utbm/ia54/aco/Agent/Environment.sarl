@@ -6,13 +6,16 @@ import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.SimpleTSPEnvironment
 import com.utbm.ia54.aco.ChangeTspVersion
 import com.utbm.ia54.aco.TWTSPEnvironment
+import parser.FileParser
+import com.utbm.ia54.aco.NewEnvironment
+import io.sarl.core.DefaultContextInteractions
 
 /** 
  * @author Mara
  */
  
 agent Environment {
-	uses Behaviors
+	uses Behaviors, DefaultContextInteractions
 
 	var tspVersion : int
 	var simpleBehavior : SimpleTSPEnvironment
@@ -21,19 +24,32 @@ agent Environment {
 	on Initialize {
 		simpleBehavior = new SimpleTSPEnvironment(this)
 		twBehavior = new TWTSPEnvironment(this)
+		
+		tspVersion = 0
+		simpleBehavior.registerBehavior
 	}
-	
-	on ChangeTspVersion {
-		if (occurrence.version_nb === 0 && tspVersion !== 0) {
-			simpleBehavior.registerBehavior
-			twBehavior.unregisterBehavior
-		} else if (occurrence.version_nb === 1 && tspVersion !== 1) {
-			simpleBehavior.registerBehavior
-			twBehavior.unregisterBehavior
-		} else if (occurrence.version_nb === 2 && tspVersion !== 2) {
-			simpleBehavior.unregisterBehavior
-			twBehavior.registerBehavior
+
+	on TspInputFile {
+		var envData = FileParser.loadEnv(occurrence.path.toString)
+		if (tspVersion != envData.tspVersionNb) {
+			if (envData.tspVersionNb === 0) {
+				simpleBehavior.registerBehavior
+				twBehavior.unregisterBehavior
+			} else if (envData.tspVersionNb === 1) {
+				simpleBehavior.registerBehavior
+				twBehavior.unregisterBehavior
+			} else if (envData.tspVersionNb === 2) {
+				simpleBehavior.unregisterBehavior
+				twBehavior.registerBehavior
+			}
+			tspVersion = envData.tspVersionNb
 		}
+		if (tspVersion === 0 || tspVersion === 1) {
+			new NewEnvironment(envData.env, envData.nbNodes).emit[it.UUID === this.ID]
+		}else if (tspVersion === 2) {
+			// new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
+		}
+			
 	}
 
 	on Destroy {

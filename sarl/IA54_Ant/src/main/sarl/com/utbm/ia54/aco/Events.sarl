@@ -12,6 +12,17 @@ event NewEnvironment {
 	}
 }
 
+event NewTWEnvironment extends NewEnvironment{
+	var timeWindow : float[][]
+	var initialTimeStamp : float
+
+	new (e : float[][][], nb : short, tw : float[][], its : float) {
+		super(e, nb)
+		timeWindow = tw
+		initialTimeStamp = its
+	}
+}
+
 event RequestUpdate
 
 event Updated{

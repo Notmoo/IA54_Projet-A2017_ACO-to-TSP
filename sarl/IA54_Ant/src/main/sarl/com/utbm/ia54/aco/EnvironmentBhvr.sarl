@@ -8,6 +8,7 @@ import io.sarl.core.Initialize
 import com.utbm.ia54.aco.Agent.Scheduler
 import java.util.UUID
 import com.utbm.ia54.aco.java.ArrayFactory
+import parser.FileParser
 
 abstract behavior AbstractTSPEnvironment {
 	uses Logging, Lifecycle, DefaultContextInteractions
@@ -127,11 +128,6 @@ behavior SimpleTSPEnvironment extends AbstractTSPEnvironment {
 
 		sendUpdateEvent
 	}
-
-	on TspInputFile {
-		FileParser.loadEnv(occurrence.path.toString, defaultPheromoneLevel)
-	}
-	
 }
 
 behavior TWTSPEnvironment extends AbstractTSPEnvironment {
@@ -152,5 +148,13 @@ behavior TWTSPEnvironment extends AbstractTSPEnvironment {
 	def sendUpdateEvent(uuid : UUID) {
 		new TWUpdated(env, nbNodes, timeWindow, initialTime).emit[it.UUID === uuid]
 	}
-	
+
+	on com.utbm.ia54.aco.NewTWEnvironment [isFromMe] {
+		sendToZero()
+		env = occurrence.env
+		nbNodes = occurrence.nbNodes
+		distanceMin = 0
+
+		sendUpdateEvent
+	}
 }

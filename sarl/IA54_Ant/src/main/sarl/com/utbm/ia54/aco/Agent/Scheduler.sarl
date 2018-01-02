@@ -15,7 +15,6 @@ import com.utbm.ia54.aco.IterationFinished
 import com.utbm.ia54.aco.SimpleIterationStart
 import com.utbm.ia54.aco.TWUpdated
 import com.utbm.ia54.aco.TWIterationStart
-import com.utbm.ia54.aco.ChangeTspVersion
 
 /** 
  * @author Mara
