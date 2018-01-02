@@ -17,7 +17,8 @@ public class FileParser {
 
     }
 
-    public static EnvData loadEnv(String path, float defaultPheromoneLevel) throws IOException {
+    public static EnvData loadEnv(String path) throws IOException {
+        //TODO impl gestion des différentes versions de TSP
         float env[][][];
         Wrapper<Short> nbNodesWrapper = new Wrapper<>((short)-1);
         List<List<String>> lines = new ArrayList<>();
@@ -47,7 +48,7 @@ public class FileParser {
             for (short i = 0; i < nbNodesWrapper.get(); i++) {
                 for (short j = 0; j < nbNodesWrapper.get(); j++) {
                     env[i][j][0] = Float.parseFloat(lines.get(i).get(j));
-                    env[i][j][1] = defaultPheromoneLevel;
+                    env[i][j][1] = 0;
                 }
             }
         }else{
