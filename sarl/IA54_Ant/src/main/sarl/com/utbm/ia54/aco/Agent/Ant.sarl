@@ -25,6 +25,8 @@ agent AntAgent{
 		if (!occurrence.parameters.isEmpty) {
 			var numAnt = occurrence.parameters.get(0) as Integer
 			loggingName = "Ant_" + numAnt.toString
+			
+			//TODO Ajout param version tsp
 			currTspVersionNb = 0
 			ctspw = new ClassicTSPWorker(this)
 			twtspw = new TWTSPWorker(this)
@@ -45,6 +47,7 @@ agent AntAgent{
 		killMe
 	}
 	
+	//XXX
 	on ChangeTspVersion {
 		if ((occurrence.version_nb === 0 || occurrence.version_nb === 1) && occurrence.version_nb !== currTspVersionNb) {
 			ctspw.registerBehavior
