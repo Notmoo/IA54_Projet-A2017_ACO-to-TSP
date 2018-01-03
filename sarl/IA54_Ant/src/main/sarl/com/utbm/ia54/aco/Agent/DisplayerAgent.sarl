@@ -80,6 +80,7 @@ agent DisplayerAgent {
 	}
 	
 	on DisplayNodes{
+		gui.clearNodes
 		gui.displayNodes(occurrence.nbNodes)
 	}
 	
