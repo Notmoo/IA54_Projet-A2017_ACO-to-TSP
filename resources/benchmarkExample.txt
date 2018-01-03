@@ -3,6 +3,8 @@
 
 # ligne détaillant le nombre de noeuds
 NB_NODES=12
+# 0 = tsp normal, 1 = tsp bottleneck, 2 = tsp w/ time windows
+TSP_VERSION=0
 
 #section détaillant la amtrice des distances jusqu'à une ligne contenant 'END_NODES_DIST_SECTION'
 NODES_DIST_SECTION
@@ -19,3 +21,28 @@ NODES_DIST_SECTION
 415 214 292 206 133 362 117 448 246 202 0 394
 515 393 349 198 165 542 368 108 418 327 394 0
 END_NODES_DIST_SECTION
+
+#section détaillant la matrice des plages horaires d'accès à un noeud
+#Cette section n'est utile que pour les tsp w/ time windows, et peut-être absente si ce tsp ne les utilise pas
+#Structure : 
+#	* chaque noeud doit avoir une ligne
+#	* les plages horaires s'écrivent sous la forme <heure_début>-<heure_fin>, et les plages pour un même noeud sont sur la même ligne et sont séparées par des espaces
+#	* si un noeud n'a pas de plages défini, écrire NONE en lieu et place des plages horaires. Il sera considéré comme accessible en tout temps
+NODE_TIME_SECTION
+0-200 250-500
+NONE
+NONE
+NONE
+NONE
+NONE
+NONE
+0-200 250-500
+0-200 250-500
+0-200 250-500
+0-200 250-500
+0-200 250-500
+END_NODE_TIME_SECTION
+
+#Ligne spécifiant l'heure de départ du tsp
+#Cette section n'est utile que pour les tsp w/ time windows, et peut-être absente si ce tsp ne les utilise pas
+TSP_INITIAL_TIME=21

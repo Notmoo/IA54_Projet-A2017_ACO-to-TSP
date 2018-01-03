@@ -3,6 +3,7 @@
 
 # ligne détaillant le nombre de noeuds
 NB_NODES=38
+TSP_VERSION=0
 
 #section détaillant la amtrice des distances jusqu'à une ligne contenant 'END_NODES_DIST_SECTION'
 NODES_DIST_SECTION
