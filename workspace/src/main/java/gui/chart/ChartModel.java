@@ -7,7 +7,7 @@ public class ChartModel {
 
     private Integer iterationNb;
     private EventListenerList listenerList;
-    private Map<Integer, Long> datas;
+    private Map<Integer, Double> datas;
 
     public ChartModel() {
         iterationNb = 0;
@@ -15,7 +15,7 @@ public class ChartModel {
         datas = new HashMap<>();
     }
 
-    void addData(long distance){
+    void addData(double distance){
         datas.put(++iterationNb, distance);
         Arrays.stream(listenerList.getListeners(IChartModelListener.class))
                 .forEach(l->l.onDataAdded(iterationNb, distance));
@@ -25,7 +25,7 @@ public class ChartModel {
         listenerList.add(IChartModelListener.class, l);
     }
 
-    Map<Integer, Long> getDatas() {
+    Map<Integer, Double> getDatas() {
         return datas;
     }
 
@@ -36,7 +36,7 @@ public class ChartModel {
     }
 
     public interface IChartModelListener extends EventListener {
-        void onDataAdded(Integer iteration, Long distance);
+        void onDataAdded(Integer iteration, Double distance);
         void onDataModified();
     }
 }

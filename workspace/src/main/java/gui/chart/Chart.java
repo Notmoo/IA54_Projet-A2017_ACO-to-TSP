@@ -33,7 +33,7 @@ public class Chart {
         model = new ChartModel();
         model.addListener(new ChartModel.IChartModelListener() {
             @Override
-            public void onDataAdded(Integer iteration, Long distance) {
+            public void onDataAdded(Integer iteration, Double distance) {
                 addData(iteration, distance);
             }
 
@@ -46,7 +46,7 @@ public class Chart {
         remakeSerie();
     }
 
-    private void addData(int iter, long distance) {
+    private void addData(int iter, double distance) {
         series.getData().add(new XYChart.Data<>(iter, distance));
     }
 
@@ -57,7 +57,7 @@ public class Chart {
         }
     }
 
-    public void addNextDistance(long dist){
+    public void addNextDistance(double dist){
         model.addData(dist);
     }
 

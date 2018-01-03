@@ -202,10 +202,10 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     }
 
     @Override
-    public void displaySolution(int nbNodes, Short[] solution, long dist, boolean best) {
+    public void displaySolution(int nbNodes, short[] solution, double dist, boolean best) {
         EdgeType type = best? EdgeType.BEST_SOLUTION : EdgeType.NORMAL;
         for(int i =1; i<nbNodes; i++){
-            graph.addEdge(solution[i-1].toString(), solution[i].toString(), type);
+            graph.addEdge(Short.toString(solution[i - 1]), Short.toString(solution[i]), type);
         }
         graph.applyUpdate();
 
