@@ -1,11 +1,17 @@
 package parser;
 
+import javafx.util.Pair;
+
+import java.util.List;
+import java.util.Map;
+
 public class EnvData {
 
     private float env[][][];
     private short nbNodes;
     private int tspVersionNb;
-    private float timeWindow[], initialTimeStamp;
+    private Map<Short, List<Pair<Float,Float>>> timeWindow;
+    private float initialTimeStamp;
 
     public EnvData(float[][][] env, short nbNodes, int tspVersionNb) {
         this.env = env;
@@ -13,7 +19,7 @@ public class EnvData {
         this.tspVersionNb = tspVersionNb;
     }
 
-    public EnvData(float[][][] env, short nbNodes, int tspVersionNb, float[] timeWindow, float initialTimeStamp) {
+    public EnvData(float[][][] env, short nbNodes, int tspVersionNb, Map<Short, List<Pair<Float,Float>>> timeWindow, float initialTimeStamp) {
         this.env = env;
         this.nbNodes = nbNodes;
         this.tspVersionNb = tspVersionNb;
@@ -33,7 +39,7 @@ public class EnvData {
         return tspVersionNb;
     }
 
-    public float[] getTimeWindow() {
+    public Map<Short, List<Pair<Float,Float>>> getTimeWindow() {
         return timeWindow;
     }
 
