@@ -173,7 +173,9 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
     @Override
     public void setProperties(Map<String, String> properties) {
-        toolbar.setProperties(properties);
+        Platform.runLater(()->{
+            toolbar.setProperties(properties);
+        });
     }
 
     @Override
@@ -182,8 +184,11 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         for(short s : nodes.keySet()){
             graph.addCell(convertToCellTag(s, nodes.get(s)), CellType.SIMPLE);
         }
-        graph.applyUpdate();
-        chart.clearChart();
+        Platform.runLater(()->{
+            graph.applyUpdate();
+            new RandomLayout(graph).execute();
+            chart.clearChart();
+        });
     }
 
     @Override
@@ -197,8 +202,10 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
     @Override
     public void clearNodes() {
-        graph.clearCells();
-        chart.clearChart();
+        Platform.runLater(()->{
+            graph.clearCells();
+            chart.clearChart();
+        });
     }
 
     @Override
@@ -207,17 +214,22 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         for(int i =1; i<nbNodes; i++){
             graph.addEdge(Short.toString(solution[i - 1]), Short.toString(solution[i]), type);
         }
-        graph.applyUpdate();
 
-        if(best){
-            chart.addNextDistance(dist);
-        }
+        Platform.runLater(()->{
+            graph.applyUpdate();
+
+            if(best){
+                chart.addNextDistance(dist);
+            }
+        });
     }
 
     @Override
     public void clearSolutions() {
-        graph.clearEdges();
-        chart.clearChart();
+        Platform.runLater(()->{
+            graph.clearEdges();
+            chart.clearChart();
+        });
     }
 
     @Override
