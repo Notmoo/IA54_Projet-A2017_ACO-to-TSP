@@ -148,30 +148,25 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 	
 	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[], idLastNode : short,
 		distImpFact : float, pheImpFact : float) : double[] {
-		var nbNoeudEligibles : int = 0
-		var totalPheromones : float = 0
-		var totalDistance : float = 0
+		var denominateur : double = 0 // utilisé pour calculer la somme des dist^(impDist)*pheromone^(impPheromones)
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
 		
 		var i : int
 		
 		for(i = 0; i< nbNodes; i++){
 			if(!visited.get(i) && i!==idLastNode){
-				nbNoeudEligibles++
-				totalDistance += destinations.get(i).get(0)
-				totalPheromones+=destinations.get(i).get(1)
+				denominateur += Math.pow(destinations.get(i).get(0), distImpFact) * Math.pow(destinations.get(i).get(1), pheImpFact)
 			}
 		}
 		
 		for (i = 0; i < nbNodes; i++) {
 			if(!visited.get(i) && i !== idLastNode){
 				if(i === 0)
-					proba.set(i, pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance, totalPheromones, distImpFact, pheImpFact))
+					proba.set(i, computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact, pheImpFact, denominateur))
 				else
 					proba.set(i,
 						proba.get(i) +
-							pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance,
-								totalPheromones, distImpFact, pheImpFact))
+						computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact, pheImpFact, denominateur))
 			}else if(i === 0){
 				proba.set(0, 0)
 			}else{
@@ -180,6 +175,10 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		}
 		
 		return proba
+	}
+	
+	def computePathProbability(distance : float, pheromoneLevel : float, distanceImportanceFactor : float, pheromoneImportanceFactor : float, denominateur : double) : float{
+		return ((Math.pow(distance, distanceImportanceFactor) * Math.pow(pheromoneLevel, pheromoneImportanceFactor))/denominateur) as float
 	}
 	
 	def findNext(nbNodes : short, proba : double[]) : short {
@@ -195,11 +194,6 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 			id = i
 		
 		return id
-	}
-	
-	def pathProba(distance : float, pheromoneLevel : float, sumOfDistances : float, sumOfPheromones : float,
-		distImpFact : float, pheImpFact : float) : float {
-		return ((distance * distImpFact + pheromoneLevel * pheImpFact) / (sumOfDistances * distImpFact + sumOfPheromones * pheImpFact))
 	}
 }
 
@@ -273,9 +267,7 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[],
 		idLastNode : short, timeWindows : Map<Short, List<Pair<Float, Float>>>, timeStamp : float, distImpFact : float,
 		pheImpFact : float) : double[] {
-		var nbNoeudEligibles : int = 0
-		var totalDistance : float = 0
-		var totalPheromones : float = 0
+		var denominateur : double = 0 // utilisé pour calculer la somme des dist^(impDist)*pheromone^(impPheromones)
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
 
 		var i : int
@@ -294,9 +286,9 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 				//Clause if en dehors de la boucle pour limiter la vérification à une par noeud
 				//Plusieurs clauses auraient pu être validées si les time windows d'un noeud se supperposent et sont valides en même temps
 				if (timeWindowOK) {
-					nbNoeudEligibles++
-					totalDistance += destinations.get(i).get(0)
-					totalPheromones+=destinations.get(i).get(1)
+					denominateur +=
+						Math.pow(destinations.get(i).get(0), distImpFact) *
+							Math.pow(destinations.get(i).get(1), pheImpFact)
 				}
 			}
 		}
@@ -305,13 +297,13 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 			if (!visited.get(i) && i !== idLastNode) {
 				if (i === 0)
 					proba.set(i,
-						pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance,
-							totalPheromones, distImpFact, pheImpFact))
+						computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact,
+							pheImpFact, denominateur))
 				else
 					proba.set(i,
 						proba.get(i) +
-							pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance,
-								totalPheromones, distImpFact, pheImpFact))
+						computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact,
+							pheImpFact, denominateur))
 			} else if (i === 0) {
 				proba.set(0, 0)
 			} else {
@@ -320,6 +312,12 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 		}
 
 		return proba
+	}
+
+	def computePathProbability(distance : float, pheromoneLevel : float, distanceImportanceFactor : float,
+		pheromoneImportanceFactor : float, denominateur : double) : float {
+		return ((Math.pow(distance, distanceImportanceFactor) * Math.pow(pheromoneLevel, pheromoneImportanceFactor)) /
+			denominateur) as float
 	}
 
 	def findNext(nbNodes : short, proba : double[]) : short {
