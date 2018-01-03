@@ -114,12 +114,10 @@ event DisplaySolution {
  * Pour l'affichage des nodes
  */
 event DisplayNodes{
-	val nodes : short[]
 	val nbNodes : short
 	
-	new (nb : short, n : short[]){
+	new (nb : short){
 		nbNodes = nb
-		nodes = n
 	}
 }
 
