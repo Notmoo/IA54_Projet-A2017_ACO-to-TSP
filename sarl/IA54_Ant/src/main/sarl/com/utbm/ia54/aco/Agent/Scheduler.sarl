@@ -15,6 +15,8 @@ import com.utbm.ia54.aco.IterationFinished
 import com.utbm.ia54.aco.SimpleIterationStart
 import com.utbm.ia54.aco.TWUpdated
 import com.utbm.ia54.aco.TWIterationStart
+import com.utbm.ia54.aco.TspPropertyChanged
+import com.utbm.ia54.aco.ApplicationClose
 
 /** 
  * @author Mara
@@ -25,6 +27,12 @@ agent Scheduler {
 	var nbAnts : int
 	var nbAntsAck : int
 	var nbAntsCreated : int
+	
+	var firstNodeId : short
+	var lastNodeId : short
+	
+	var pheromoneImportanceFactor : float
+	var distanceImportanceFactor : float
 
 	on Initialize {
 		loggingName = "Scheduler"
@@ -35,6 +43,12 @@ agent Scheduler {
 
 		nbAntsAck = 0;
 		nbAntsCreated = 0;
+		
+		firstNodeId = (-1) as short
+		lastNodeId = (-1) as short
+		
+		pheromoneImportanceFactor = 1f
+		distanceImportanceFactor = 1f
 		
 		for (var i = 0; i < nbAnts; i++) {
 			spawn(AntAgent, i);
@@ -75,5 +89,43 @@ agent Scheduler {
 			nbAntsAck = 0
 			emit(new IterationFinished)
 		}
+	}
+	
+	on TspPropertyChanged {
+		info("Property changed received : " + occurrence.property_id + " -> " + occurrence.property_value)
+		switch occurrence.property_id{
+			case "number of ants": {
+				//TODO uncomment this
+				// var temp = Integer.parseInt(occurrence.property_value)
+				// nbAnts = temp
+				// TODO rebuild toutes les fourmis
+			}
+			case "first node id": {
+				var temp = Short.parseShort(occurrence.property_value)
+				if (temp !== lastNodeId || temp === -1) {
+					firstNodeId = temp
+				}
+			}
+			case "last node id": {
+				var temp = Short.parseShort(occurrence.property_value)
+				if(temp!==firstNodeId || temp === -1){
+					lastNodeId = temp
+				}
+			}
+			case "pheromone importance factor for ants": {
+				var temp = Float.parseFloat(occurrence.property_value)
+				pheromoneImportanceFactor = temp
+					// TODO rebuild toutes les fourmis
+			}
+			case "distance importance factor for ants": {
+				var temp = Float.parseFloat(occurrence.property_value)
+				distanceImportanceFactor = temp
+					// TODO rebuild toutes les fourmis
+			}
+		}
+	}
+	
+	on ApplicationClose{
+		killMe
 	}
 }

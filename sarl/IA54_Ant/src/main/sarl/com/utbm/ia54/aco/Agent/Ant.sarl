@@ -9,6 +9,8 @@ import com.utbm.ia54.aco.AntCreated
 import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.ClassicTSPWorker
 import com.utbm.ia54.aco.TWTSPWorker
+import com.utbm.ia54.aco.ApplicationClose
+import com.utbm.ia54.aco.ImportanceFactorChanged
 
 //-----------------------------------------
 //		AGENTS
@@ -23,15 +25,24 @@ agent AntAgent{
 			var numAnt = occurrence.parameters.get(0) as Integer
 			loggingName = "Ant_" + numAnt.toString
 			
-			if(occurrence.parameters.size>1)
+			var pheromoneImportanceFactor = -1 as float
+			var distanceImportanceFactor = -1 as float
+			
+			if(occurrence.parameters.size>3){
 				currTspVersionNb = occurrence.parameters.get(1) as Integer
-			else
+				pheromoneImportanceFactor = occurrence.parameters.get(2) as Float
+				distanceImportanceFactor = occurrence.parameters.get(3) as Float
+				
+			}else{
 				currTspVersionNb = 0
+			}
 				
 			switch (currTspVersionNb){
 				case 2: new TWTSPWorker(this).registerBehavior
 				default: new ClassicTSPWorker(this).registerBehavior
 			}
+			
+			new ImportanceFactorChanged(distanceImportanceFactor, pheromoneImportanceFactor).emit[it.UUID === this.ID]
 			new AntCreated().emit
 		}else{
 			killMe

@@ -160,3 +160,5 @@ event TspPath{
 event AckSolution
 
 event IterationFinished
+
+event ApplicationClose

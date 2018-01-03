@@ -15,9 +15,20 @@ import java.util.List
  abstract behavior TSPWorker{
 
 	protected var envUUID : UUID
-
+	protected var distanceImportanceFactor : float
+	protected var pheromoneImportanceFactor : float
+	
 	on AntCreatedAck {
 		envUUID = occurrence.source.UUID
+		distanceImportanceFactor = 1 as float
+		pheromoneImportanceFactor = 1 as float
+	}
+	
+	on ImportanceFactorChanged[isFromMe]{
+		if (occurrence.distanceImportanceFactor !== -1)
+			distanceImportanceFactor = occurrence.distanceImportanceFactor
+		if (occurrence.pheromoneImportanceFactor !== -1)
+			pheromoneImportanceFactor = occurrence.pheromoneImportanceFactor
 	}
  }
  
@@ -33,13 +44,14 @@ import java.util.List
 
 	on SimpleIterationStart {
 		if (occurrence.idFirstNode != -1) {
-			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode).emit [
+			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode, distanceImportanceFactor, pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
 			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 		} else {
 			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
-			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode).emit [
+			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode, distanceImportanceFactor,
+				pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
 			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
@@ -70,14 +82,14 @@ import java.util.List
 	on TWIterationStart {
 		if (occurrence.idFirstNode != -1) {
 			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode, occurrence.timeWindows,
-				occurrence.initialTimeStamp).emit [
+				occurrence.initialTimeStamp, distanceImportanceFactor, pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
 			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 		} else {
 			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
 			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode, occurrence.timeWindows,
-				occurrence.initialTimeStamp).emit [
+				occurrence.initialTimeStamp, distanceImportanceFactor, pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
 			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
@@ -91,12 +103,13 @@ import java.util.List
  * ---------------------------
  */
 capacity TSPPathFinder{
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float, pheImpFact : float) : TspPath
 }
 
 capacity TWTSPPathFinder {
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short,
-		timeWindows : Map<Short, List<Pair<Float, Float>>>, initialTimeStamp : float) : TspPath
+		timeWindows : Map<Short, List<Pair<Float, Float>>>, initialTimeStamp : float, distImpFact : float,
+		pheImpFact : float) : TspPath
 }
 
 /* ---------------------------
@@ -106,7 +119,8 @@ capacity TWTSPPathFinder {
 skill SimpleTSPPathFinder implements TSPPathFinder {
 	
 	//TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath {
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
+		pheImpFact : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
@@ -121,7 +135,9 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 				if(step === nbNodes-1 && idLastNode!=-1){
 					temp_node_id = idLastNode
 				}else{
-					temp_node_id = findNext(nbNodes, computeProbabilities(nbNodes, env.get(solution.get(step-1)), visited, idLastNode))
+					temp_node_id = findNext(nbNodes,
+						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
+							pheImpFact))
 				}
 			}while(temp_node_id===-1)
 			dist += env.get(solution.get(step - 1)).get(temp_node_id).get(0)
@@ -130,7 +146,8 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		return new TspPath(nbNodes, solution, dist)
 	}
 	
-	def computeProbabilities (nbNodes : short, destinations : float[][], visited : boolean[], idLastNode : short) : double[] {
+	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[], idLastNode : short,
+		distImpFact : float, pheImpFact : float) : double[] {
 		var nbNoeudEligibles : int = 0
 		var totalPheromones : double = 0
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
@@ -180,7 +197,8 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 	uses SimpleTSPPathFinder
 
 	// TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short) : TspPath {
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
+		pheImpFact : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
@@ -196,7 +214,8 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 					temp_node_id = idLastNode
 				} else {
 					temp_node_id = findNext(nbNodes,
-						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode))
+						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
+						pheImpFact))
 				}
 			} while (temp_node_id === -1)
 			val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
@@ -212,7 +231,7 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 	
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short,
 		timeWindows : Map<Short, List<Pair<Float, Float>>>,
-		initialTimeStamp : float) : TspPath {
+		initialTimeStamp : float, distImpFact : float, pheImpFact : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
@@ -229,7 +248,8 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 					temp_node_id = idLastNode
 				} else {
 					temp_node_id = findNext(nbNodes,
-						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, timeWindows, actualTimeStamp))
+						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, timeWindows,
+						actualTimeStamp, distImpFact, pheImpFact))
 				}
 			} while (temp_node_id === -1)
 			val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
@@ -241,7 +261,8 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 	}
 
 	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[],
-		idLastNode : short, timeWindows : Map<Short, List<Pair<Float, Float>>>, timeStamp : float) : double[] {
+		idLastNode : short, timeWindows : Map<Short, List<Pair<Float, Float>>>, timeStamp : float, distImpFact : float,
+		pheImpFact : float) : double[] {
 		var nbNoeudEligibles : int = 0
 		var totalPheromones : double = 0
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
@@ -298,4 +319,14 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 
 		return id
 	}	
+}
+
+event ImportanceFactorChanged{
+	var distanceImportanceFactor : float
+	var pheromoneImportanceFactor : float
+	
+	new(distanceImportanceFactor : float, pheromoneImportanceFactor : float){
+		this.distanceImportanceFactor = distanceImportanceFactor
+		this.pheromoneImportanceFactor = pheromoneImportanceFactor
+	}
 }

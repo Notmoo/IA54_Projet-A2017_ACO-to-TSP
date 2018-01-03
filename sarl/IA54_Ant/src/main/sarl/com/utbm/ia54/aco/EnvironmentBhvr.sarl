@@ -16,11 +16,12 @@ abstract behavior AbstractTSPEnvironment {
 	 */
 	protected var env : float[][][] // trois dim, a voir avec Cess pour implémenter ce qu'il a fait
 	protected var nbNodes : short
-	protected var nbAnts : int // nombre de fourmie
+	//TODO demander à Mara ce que c'est
 	protected var Q = 1 // valeur a régler
-	protected var alpha = 1 // Variable pour l'importance de la distance
-	protected var betha = 0.5f // Variable pour l'évaporation
-	protected var defaultPheromoneLevel : float = 1.0f
+	
+	protected var defaultPheromoneLevel : float // Niveau initial de phéromones
+	protected var pheromoneEvaporationFactor : float // Variable pour l'importance de l'évaporation des phéromones dans l'env
+	protected var distanceFactor : float // Variable pour l'importance de la distance dans l'env
 	
 	
 	protected var solution : float[][]
@@ -30,23 +31,32 @@ abstract behavior AbstractTSPEnvironment {
 	 */
 	on Initialize {
 		loggingName = "Environment"
-
+		
+		var nbAnts : int
 		if (!occurrence.parameters.isEmpty) {
 			nbAnts = occurrence.parameters.get(0) as Integer
+			if (nbAnts <= 0) {
+				error("Number of Ants specified but invalid, took 5")
+				nbAnts = 5
+			}
+		}else{
+			error("Number of Ants not specified, took 5")
+			nbAnts = 5
 		}
 
 		spawn(Scheduler, nbAnts) // nbAnts à passer en paramètre
 		distanceMin = -1
 		Q = 1
-		alpha = 1
-		betha = 0.5f
+		distanceFactor = 1f
+		defaultPheromoneLevel = 1f
+		pheromoneEvaporationFactor = 0.5f
 		
 	}
 
 	on Destroy {
 	}
 
-	on com.utbm.ia54.aco.RequestUpdate {
+	on RequestUpdate {
 		sendToZero()
 		if (env.isEmpty) {
 			var senderID = occurrence.source.getUUID
@@ -54,7 +64,7 @@ abstract behavior AbstractTSPEnvironment {
 		}
 	}
 
-	on com.utbm.ia54.aco.TspPath {
+	on TspPath {
 		var senderID = occurrence.source.getUUID
 
 		var newDist = occurrence.distance
@@ -65,15 +75,30 @@ abstract behavior AbstractTSPEnvironment {
 
 		updateSolution(occurrence.nodes, occurrence.nbNodes);
 
-		emit(new com.utbm.ia54.aco.AckSolution)[it.getUUID == senderID]
+		emit(new AckSolution)[it.getUUID == senderID]
 	}
 
-	on com.utbm.ia54.aco.IterationFinished {
+	on IterationFinished {
 		updateEnvironment()
 	}
 
 	on AntCreated {
 		new AntCreatedAck().emit[it.UUID === occurrence.source.UUID]
+	}
+	
+	on TspPropertyChanged {
+		info("Property changed received : " + occurrence.property_id + " -> " + occurrence.property_value)
+		switch occurrence.property_id {
+			case "distance importance in env": {
+				var temp = Float.parseFloat(occurrence.property_value)
+				distanceFactor = temp
+			}
+			case "pheromone evaporation factor": {
+				var temp = Float.parseFloat(occurrence.property_value)
+				pheromoneEvaporationFactor = temp
+			}
+			
+		}
 	}
 	/********************************************************************** 
 	 */
@@ -92,7 +117,8 @@ abstract behavior AbstractTSPEnvironment {
 		for (var i = 0; i < nbNodes; i++) {
 			for (var j = 0; j < nbNodes; j++) {
 				env.get(i).get(j).set(1,
-					betha * (env.get(i).get(j).get(1) + alpha * solution.get(i).get(j) / env.get(i).get(j).get(0)))
+					pheromoneEvaporationFactor *
+						(env.get(i).get(j).get(1) + distanceFactor * solution.get(i).get(j) / env.get(i).get(j).get(0)))
 			}
 		}
 	}
@@ -120,7 +146,7 @@ behavior SimpleTSPEnvironment extends AbstractTSPEnvironment {
 		new Updated(env, nbNodes).emit[it.UUID === uuid]
 	}
 
-	on com.utbm.ia54.aco.NewEnvironment [isFromMe] {
+	on NewEnvironment [isFromMe] {
 		sendToZero()
 		env = occurrence.env
 		nbNodes = occurrence.nbNodes
@@ -149,7 +175,7 @@ behavior TWTSPEnvironment extends AbstractTSPEnvironment {
 		new TWUpdated(env, nbNodes, timeWindow, initialTime).emit[it.UUID === uuid]
 	}
 
-	on com.utbm.ia54.aco.NewTWEnvironment [isFromMe] {
+	on NewTWEnvironment [isFromMe] {
 		sendToZero()
 		env = occurrence.env
 		nbNodes = occurrence.nbNodes

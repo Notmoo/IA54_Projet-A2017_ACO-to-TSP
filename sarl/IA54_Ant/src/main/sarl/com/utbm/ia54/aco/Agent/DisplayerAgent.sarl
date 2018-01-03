@@ -18,47 +18,14 @@ import gui.main_frame.MainFrame
 import io.sarl.core.Schedules
 import interfaces.ITSPDisplayerCallback
 import io.sarl.core.Lifecycle
-
-// XXX remove theses events (placeholders)
-event DisplaySolution{
-	var nbNodes : short
-	var solution : Short[]
-	var distance : long
-	var isBest : boolean
-}
-
-event ClearSolutions{
-	var clear_best : boolean
-	var clear_normal : boolean	
-}
-
-event DisplayNodes {
-	var nbNodes : short
-}
-
-event ClearNodes
-
-event DisplayerReady
-
-event TspPropertyChanged{
-	val property_id : String
-	val property_value : String
-	
-	new(propId : String, propVal : String){
-		this.property_id = propId
-		this.property_value = propVal
-	}
-}
-
-event TspInputFile{
-	val path : Path
-	
-	new(path : Path){
-		this.path = path
-	}
-}
-
-event ApplicationClose
+import com.utbm.ia54.aco.DisplayerReady
+import com.utbm.ia54.aco.DisplaySolution
+import com.utbm.ia54.aco.DisplayNodes
+import com.utbm.ia54.aco.ClearSolutions
+import com.utbm.ia54.aco.ClearNodes
+import com.utbm.ia54.aco.TspInputFile
+import com.utbm.ia54.aco.TspPropertyChanged
+import com.utbm.ia54.aco.ApplicationClose
 
 //-----------------------------------------
 // AGENTS
@@ -107,37 +74,9 @@ agent DisplayerAgent {
 		// You should put all the resource releasing statements in this block of code.
 		info("DisplayerAgent was stopped.")
 	}
-
-	on AgentSpawned {
-		// A new agent has been spawned in our context.
-	}
-
-	on AgentKilled {
-		// A new agent has been killed in our context.
-	}
-
-	on ContextJoined {
-		// Event trigger when an agent of the level joins a shared context.
-		// Sent to a agent of the same level.
-	}
-
-	on ContextLeft {
-		// Event trigger when an agent of the level jleaves a shared context.
-		// Sent to a agent of the same level.
-	}
-
-	on MemberJoined {
-		// Event trigger when an agent joins one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
-	}
-
-	on MemberLeft {
-		// Event trigger when an agent leaves one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
-	}
 	
 	on DisplaySolution{
-		gui.displaySolution(occurrence.nbNodes, occurrence.solution, occurrence.distance, occurrence.isBest)
+		gui.displaySolution(occurrence.nbNodes, occurrence.nodes, occurrence.distance, occurrence.bestSolution)
 	}
 	
 	on DisplayNodes{

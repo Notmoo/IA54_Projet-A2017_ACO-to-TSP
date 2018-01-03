@@ -4,19 +4,21 @@ import io.sarl.core.Destroy
 import io.sarl.core.Initialize
 import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.SimpleTSPEnvironment
-import com.utbm.ia54.aco.ChangeTspVersion
 import com.utbm.ia54.aco.TWTSPEnvironment
 import parser.FileParser
 import com.utbm.ia54.aco.NewEnvironment
 import io.sarl.core.DefaultContextInteractions
 import com.utbm.ia54.aco.NewTWEnvironment
+import com.utbm.ia54.aco.TspInputFile
+import com.utbm.ia54.aco.ApplicationClose
+import io.sarl.core.Lifecycle
 
 /** 
  * @author Mara
  */
  
 agent Environment {
-	uses Behaviors, DefaultContextInteractions
+	uses Behaviors, DefaultContextInteractions, Lifecycle
 
 	var tspVersion : int
 	var simpleBehavior : SimpleTSPEnvironment
@@ -48,9 +50,14 @@ agent Environment {
 		if (tspVersion === 0 || tspVersion === 1) {
 			new NewEnvironment(envData.env, envData.nbNodes).emit[it.UUID === this.ID]
 		}else if (tspVersion === 2) {
-			new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
+			// TODO résoudre le problème de mapping avec le param 'envData.timeWindow'
+			//new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
 		}
 			
+	}
+	
+	on ApplicationClose{
+		killMe
 	}
 
 	on Destroy {
