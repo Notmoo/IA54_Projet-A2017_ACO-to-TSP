@@ -1,6 +1,8 @@
 package com.utbm.ia54.aco
 
 import java.nio.file.Path
+import java.util.List
+import java.util.Map
 
 event NewEnvironment {
 	var env : float[][][]
@@ -13,10 +15,10 @@ event NewEnvironment {
 }
 
 event NewTWEnvironment extends NewEnvironment{
-	var timeWindow : float[][]
+	var timeWindow : Map<Short, List<Pair<Float, Float>>>
 	var initialTimeStamp : float
 
-	new (e : float[][][], nb : short, tw : float[][], its : float) {
+	new (e : float[][][], nb : short, tw : Map<Short, List<Pair<Float, Float>>>, its : float) {
 		super(e, nb)
 		timeWindow = tw
 		initialTimeStamp = its
@@ -36,10 +38,10 @@ event Updated{
 }
 
 event TWUpdated extends Updated{
-	var timeWindows : float[][]
+	var timeWindows : Map<Short, List<Pair<Float, Float>>>
 	var timeStamp : float
 
-	new (e : float[][][], nb : short, tw : float[][], ts : float) {
+	new (e : float[][][], nb : short, tw : Map<Short, List<Pair<Float, Float>>>, ts : float) {
 		super(e, nb)
 		timeWindows = tw
 		timeStamp = ts
@@ -66,10 +68,11 @@ event SimpleIterationStart {
 
 //Version de l'événement destinée aux problèmes avec horaires de livraison (TW -> Time Window)
 event TWIterationStart extends SimpleIterationStart{
-	var timeWindows : float[][]
+	var timeWindows : Map<Short, List<Pair<Float, Float>>>
 	var initialTimeStamp : float
 
-	new (nb : short, e : float[][][], idFN : short, idLN : short, tw : float[][], its : float) {
+	new (nb : short, e : float[][][], idFN : short, idLN : short, tw : Map<Short, List<Pair<Float, Float>>>,
+		its : float) {
 		super(nb, e, idFN, idLN)
 		timeWindows = tw
 		initialTimeStamp = its

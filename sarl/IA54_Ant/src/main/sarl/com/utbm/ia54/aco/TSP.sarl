@@ -5,6 +5,8 @@ import java.util.Random
 import io.sarl.core.DefaultContextInteractions
 import java.util.UUID
 import io.sarl.core.Initialize
+import java.util.Map
+import java.util.List
 
 /* ---------------------------
  * BEHAVIORS
@@ -93,7 +95,8 @@ capacity TSPPathFinder{
 }
 
 capacity TWTSPPathFinder {
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, timeWindows : float[][], initialTimeStamp : float) : TspPath
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short,
+		timeWindows : Map<Short, List<Pair<Float, Float>>>, initialTimeStamp : float) : TspPath
 }
 
 /* ---------------------------
@@ -207,7 +210,8 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 
 skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 	
-	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, timeWindows : float[][],
+	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short,
+		timeWindows : Map<Short, List<Pair<Float, Float>>>,
 		initialTimeStamp : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
@@ -237,7 +241,7 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 	}
 
 	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[],
-		idLastNode : short, timeWindows : float[][], timeStamp : float) : double[] {
+		idLastNode : short, timeWindows : Map<Short, List<Pair<Float, Float>>>, timeStamp : float) : double[] {
 		var nbNoeudEligibles : int = 0
 		var totalPheromones : double = 0
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
@@ -245,12 +249,22 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 		var i : int
 
 		for (i = 0; i < nbNodes; i++) {
-			if (!visited.get(i) && i !== idLastNode
-				&& timeWindows.get(i).get(0)<=timeStamp
-				&& timeWindows.get(i).get(1) > timeStamp
-			) {
-				nbNoeudEligibles++
-				totalPheromones += destinations.get(i).get(1)
+			if(!visited.get(i) && i !== idLastNode){
+				var timeWindowOK = false
+				for (var indexPair : int = 0; indexPair < timeWindows.get(i).size; indexPair++) {
+					if(timeWindows.get(i).get(indexPair).key <= timeStamp
+						&& timeWindows.get(i).get(indexPair).value > timeStamp
+					){
+						timeWindowOK = true
+					}
+				}
+				
+				//Clause if en dehors de la boucle pour limiter la vérification à une par noeud
+				//Plusieurs clauses auraient pu être validées si les time windows d'un noeud se supperposent et sont valides en même temps
+				if (timeWindowOK) {
+					nbNoeudEligibles++
+					totalPheromones += destinations.get(i).get(1)
+				}
 			}
 		}
 

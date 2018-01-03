@@ -9,6 +9,7 @@ import com.utbm.ia54.aco.TWTSPEnvironment
 import parser.FileParser
 import com.utbm.ia54.aco.NewEnvironment
 import io.sarl.core.DefaultContextInteractions
+import com.utbm.ia54.aco.NewTWEnvironment
 
 /** 
  * @author Mara
@@ -47,7 +48,7 @@ agent Environment {
 		if (tspVersion === 0 || tspVersion === 1) {
 			new NewEnvironment(envData.env, envData.nbNodes).emit[it.UUID === this.ID]
 		}else if (tspVersion === 2) {
-			// new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
+			new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
 		}
 			
 	}
