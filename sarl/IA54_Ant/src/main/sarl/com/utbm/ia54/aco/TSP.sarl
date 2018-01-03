@@ -149,7 +149,8 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[], idLastNode : short,
 		distImpFact : float, pheImpFact : float) : double[] {
 		var nbNoeudEligibles : int = 0
-		var totalPheromones : double = 0
+		var totalPheromones : float = 0
+		var totalDistance : float = 0
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
 		
 		var i : int
@@ -157,6 +158,7 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		for(i = 0; i< nbNodes; i++){
 			if(!visited.get(i) && i!==idLastNode){
 				nbNoeudEligibles++
+				totalDistance += destinations.get(i).get(0)
 				totalPheromones+=destinations.get(i).get(1)
 			}
 		}
@@ -164,9 +166,12 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		for (i = 0; i < nbNodes; i++) {
 			if(!visited.get(i) && i !== idLastNode){
 				if(i === 0)
-					proba.set(i, destinations.get(i).get(1)/totalPheromones)
+					proba.set(i, pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance, totalPheromones, distImpFact, pheImpFact))
 				else
-					proba.set(i, proba.get(i) + destinations.get(i).get(1) / totalPheromones)
+					proba.set(i,
+						proba.get(i) +
+							pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance,
+								totalPheromones, distImpFact, pheImpFact))
 			}else if(i === 0){
 				proba.set(0, 0)
 			}else{
@@ -190,6 +195,11 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 			id = i
 		
 		return id
+	}
+	
+	def pathProba(distance : float, pheromoneLevel : float, sumOfDistances : float, sumOfPheromones : float,
+		distImpFact : float, pheImpFact : float) : float {
+		return ((distance * distImpFact + pheromoneLevel * pheImpFact) / (sumOfDistances * distImpFact + sumOfPheromones * pheImpFact))
 	}
 }
 
@@ -264,7 +274,8 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 		idLastNode : short, timeWindows : Map<Short, List<Pair<Float, Float>>>, timeStamp : float, distImpFact : float,
 		pheImpFact : float) : double[] {
 		var nbNoeudEligibles : int = 0
-		var totalPheromones : double = 0
+		var totalDistance : float = 0
+		var totalPheromones : float = 0
 		var proba : double[] = ArrayFactory.newDoubleArray(nbNodes);
 
 		var i : int
@@ -284,7 +295,8 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 				//Plusieurs clauses auraient pu être validées si les time windows d'un noeud se supperposent et sont valides en même temps
 				if (timeWindowOK) {
 					nbNoeudEligibles++
-					totalPheromones += destinations.get(i).get(1)
+					totalDistance += destinations.get(i).get(0)
+					totalPheromones+=destinations.get(i).get(1)
 				}
 			}
 		}
@@ -292,9 +304,14 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 		for (i = 0; i < nbNodes; i++) {
 			if (!visited.get(i) && i !== idLastNode) {
 				if (i === 0)
-					proba.set(i, destinations.get(i).get(1) / totalPheromones)
+					proba.set(i,
+						pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance,
+							totalPheromones, distImpFact, pheImpFact))
 				else
-					proba.set(i, proba.get(i) + destinations.get(i).get(1) / totalPheromones)
+					proba.set(i,
+						proba.get(i) +
+							pathProba(destinations.get(i).get(0), destinations.get(i).get(1), totalDistance,
+								totalPheromones, distImpFact, pheImpFact))
 			} else if (i === 0) {
 				proba.set(0, 0)
 			} else {
@@ -318,7 +335,13 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 			id = i
 
 		return id
-	}	
+	}
+
+	def pathProba(distance : float, pheromoneLevel : float, sumOfDistances : float, sumOfPheromones : float,
+		distImpFact : float, pheImpFact : float) : float {
+		return ((distance * distImpFact + pheromoneLevel * pheImpFact) /
+			(sumOfDistances * distImpFact + sumOfPheromones * pheImpFact))
+	}
 }
 
 event ImportanceFactorChanged{
