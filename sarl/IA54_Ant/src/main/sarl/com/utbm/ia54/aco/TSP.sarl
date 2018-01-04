@@ -13,6 +13,7 @@ import java.util.List
  * ---------------------------
  */
  abstract behavior TSPWorker{
+ 	uses DefaultContextInteractions
 
 	protected var envUUID : UUID
 	protected var distanceImportanceFactor : float
@@ -29,6 +30,10 @@ import java.util.List
 			distanceImportanceFactor = occurrence.distanceImportanceFactor
 		if (occurrence.pheromoneImportanceFactor !== -1)
 			pheromoneImportanceFactor = occurrence.pheromoneImportanceFactor
+	}
+
+	on AckSolution [occurrence.source.UUID === envUUID] {
+		new AntFinished().emit
 	}
  }
  
@@ -55,10 +60,6 @@ import java.util.List
 				it.getUUID === envUUID
 			]
 		}
-	}
-	
-	on AckSolution [occurrence.source.UUID === envUUID] {
-		new AntFinished().emit
 	}
  }
  
