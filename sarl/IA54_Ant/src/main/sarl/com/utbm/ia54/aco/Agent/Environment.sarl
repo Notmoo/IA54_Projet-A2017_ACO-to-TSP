@@ -8,7 +8,6 @@ import com.utbm.ia54.aco.TWTSPEnvironment
 import parser.FileParser
 import com.utbm.ia54.aco.NewEnvironment
 import io.sarl.core.DefaultContextInteractions
-import com.utbm.ia54.aco.NewTWEnvironment
 import com.utbm.ia54.aco.TspInputFile
 import com.utbm.ia54.aco.ApplicationClose
 import io.sarl.core.Lifecycle
