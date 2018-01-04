@@ -54,21 +54,11 @@ import java.util.List
 				pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
-			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 		}
 	}
 	
-	on ChangeTspVersion {
-		if (occurrence.version_nb === 0 && currTspVersion!==occurrence.version_nb) {
-			new SimpleTSPPathFinder().setSkill(TSPPathFinder)
-
-			currTspVersion = occurrence.version_nb
-		}
-		if (occurrence.version_nb === 1 && currTspVersion !== occurrence.version_nb) {
-			new BottleneckTSPPathFinder().setSkill(TSPPathFinder)
-
-			currTspVersion = occurrence.version_nb
-		}
+	on AckSolution [occurrence.source.UUID === envUUID] {
+		new AntFinished().emit
 	}
  }
  
@@ -129,6 +119,7 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		do{
 			loop = false
 			solution.set(0, idFirstNode)
+			visited.set(idFirstNode, true)
 			
 			for(step = 1; step < nbNodes; step++){
 				if(!loop){
@@ -137,16 +128,18 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 					do{
 						if(step === nbNodes-1 && idLastNode!=-1){
 							temp_node_id = idLastNode
-						}else{
+						} else {
 							temp_node_id = findNext(nbNodes,
 								computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
 									pheImpFact))
 						}
 						timeout--
 					}while(temp_node_id===-1 && timeout>0)
-					if(temp_node_id!==-1){
+					if (temp_node_id !== -1) {
 						//Si un noeud a été trouvé
 						dist += env.get(solution.get(step - 1)).get(temp_node_id).get(0)
+						solution.set(step, temp_node_id)
+						visited.set(temp_node_id, true)
 					}else{
 						//Si aucun noeud n'a été trouvé après 5 boucles
 						loop = true
@@ -166,21 +159,21 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		
 		for(i = 0; i< nbNodes; i++){
 			if(!visited.get(i) && i!==idLastNode){
-				denominateur += Math.pow(destinations.get(i).get(0), distImpFact) * Math.pow(destinations.get(i).get(1), pheImpFact)
+				denominateur += Math.pow(1/destinations.get(i).get(0), distImpFact) * Math.pow(destinations.get(i).get(1), pheImpFact)
 			}
 		}
-		
 		for (i = 0; i < nbNodes; i++) {
 			if(!visited.get(i) && i !== idLastNode){
-				if(i === 0)
+				if (i === 0) {
 					proba.set(i, computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact, pheImpFact, denominateur))
-				else
+				} else {
 					proba.set(i,
-						proba.get(i) +
+						proba.get(i-1) +
 						computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact, pheImpFact, denominateur))
-			}else if(i === 0){
+				}
+			} else if (i === 0) {
 				proba.set(0, 0)
-			}else{
+			} else {
 				proba.set(i, proba.get(i-1))
 			}
 		}
@@ -193,15 +186,14 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 	}
 	
 	def findNext(nbNodes : short, proba : double[]) : short {
-		var id : short = 0 as short
-		id--
+		var id : short = (-1) as short
 		val rand = new Random().nextDouble
 		var i : short = 0 as short
 		
-		while(rand>=proba.get(i))
+		while(i < nbNodes && rand>=proba.get(i))
 			i++
 		
-		if(rand<proba.get(i))
+		if(i < nbNodes && rand<proba.get(i))
 			id = i
 		
 		return id
@@ -222,6 +214,7 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 		do{
 			loop = false
 			solution.set(0, idFirstNode)
+			visited.set(idFirstNode, true)
 	
 			for (step = 1; step < nbNodes; step++) {
 				if(!loop){
@@ -240,7 +233,9 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 					if(temp_node_id!==-1){
 						val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
 						if(temp_dist<dist)
-							dist = temp_dist		
+							dist = temp_dist
+						solution.set(step, temp_node_id)
+						visited.set(temp_node_id, true)
 					}else{
 						loop = true
 					}
@@ -266,6 +261,7 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 		do{
 			loop = false
 			solution.set(0, idFirstNode)
+			visited.set(idFirstNode, true)
 	
 			for (step = 1; step < nbNodes; step++) {
 				if(!loop){
@@ -285,6 +281,8 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 						val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
 						actualTimeStamp += temp_dist
 						dist += temp_dist
+						solution.set(step, temp_node_id)
+						visited.set(temp_node_id, true)
 					}else{
 						loop = true
 					}
@@ -317,7 +315,7 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 				//Plusieurs clauses auraient pu être validées si les time windows d'un noeud se supperposent et sont valides en même temps
 				if (timeWindowOK) {
 					denominateur +=
-						Math.pow(destinations.get(i).get(0), distImpFact) *
+						Math.pow(1/destinations.get(i).get(0), distImpFact) *
 							Math.pow(destinations.get(i).get(1), pheImpFact)
 				}
 			}
@@ -346,13 +344,12 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 
 	def computePathProbability(distance : float, pheromoneLevel : float, distanceImportanceFactor : float,
 		pheromoneImportanceFactor : float, denominateur : double) : float {
-		return ((Math.pow(distance, distanceImportanceFactor) * Math.pow(pheromoneLevel, pheromoneImportanceFactor)) /
+		return ((Math.pow(1/distance, distanceImportanceFactor) * Math.pow(pheromoneLevel, pheromoneImportanceFactor)) /
 			denominateur) as float
 	}
 
 	def findNext(nbNodes : short, proba : double[]) : short {
-		var id : short = 0 as short
-		id--
+		var id : short = (-1) as short
 		val rand = new Random().nextDouble
 		var i : short = 0 as short
 
@@ -363,12 +360,6 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 			id = i
 
 		return id
-	}
-
-	def pathProba(distance : float, pheromoneLevel : float, sumOfDistances : float, sumOfPheromones : float,
-		distImpFact : float, pheImpFact : float) : float {
-		return ((distance * distImpFact + pheromoneLevel * pheImpFact) /
-			(sumOfDistances * distImpFact + sumOfPheromones * pheImpFact))
 	}
 }
 
