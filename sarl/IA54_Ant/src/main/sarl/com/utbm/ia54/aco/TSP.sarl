@@ -118,31 +118,42 @@ capacity TWTSPPathFinder {
  */
 skill SimpleTSPPathFinder implements TSPPathFinder {
 	
-	//TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
 		pheImpFact : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
 		var dist : double = 0
+		var loop = false
 		
-		solution.set(0, idFirstNode)
-		
-		for(step = 1; step < nbNodes; step++){
-			var temp_node_id : short = (-1) as short
+		do{
+			loop = false
+			solution.set(0, idFirstNode)
 			
-			do{
-				if(step === nbNodes-1 && idLastNode!=-1){
-					temp_node_id = idLastNode
-				}else{
-					temp_node_id = findNext(nbNodes,
-						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
-							pheImpFact))
+			for(step = 1; step < nbNodes; step++){
+				if(!loop){
+					var temp_node_id : short = (-1) as short
+					var timeout = 5
+					do{
+						if(step === nbNodes-1 && idLastNode!=-1){
+							temp_node_id = idLastNode
+						}else{
+							temp_node_id = findNext(nbNodes,
+								computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
+									pheImpFact))
+						}
+						timeout--
+					}while(temp_node_id===-1 && timeout>0)
+					if(temp_node_id!==-1){
+						//Si un noeud a été trouvé
+						dist += env.get(solution.get(step - 1)).get(temp_node_id).get(0)
+					}else{
+						//Si aucun noeud n'a été trouvé après 5 boucles
+						loop = true
+					}
 				}
-			}while(temp_node_id===-1)
-			dist += env.get(solution.get(step - 1)).get(temp_node_id).get(0)
-		}
-		
+			}
+		}while(loop)
 		return new TspPath(nbNodes, solution, dist)
 	}
 	
@@ -200,33 +211,42 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 skill BottleneckTSPPathFinder implements TSPPathFinder{
 	uses SimpleTSPPathFinder
 
-	// TODO add a while loop in case of end without finding a suitable solution (e.g. when graph is not complete and not all nodes are visited before running out of paths)
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
 		pheImpFact : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
 		var dist : double = 0
-
-		solution.set(0, idFirstNode)
-
-		for (step = 1; step < nbNodes; step++) {
-			var temp_node_id : short = (-1) as short
-			
-			do {
-				if (step === nbNodes - 1 && idLastNode != -1) {
-					temp_node_id = idLastNode
-				} else {
-					temp_node_id = findNext(nbNodes,
-						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
-						pheImpFact))
+		var loop = false
+		
+		do{
+			loop = false
+			solution.set(0, idFirstNode)
+	
+			for (step = 1; step < nbNodes; step++) {
+				if(!loop){
+					var temp_node_id : short = (-1) as short
+					var timeout = 5
+					do {
+						if (step === nbNodes - 1 && idLastNode != -1) {
+							temp_node_id = idLastNode
+						} else {
+							temp_node_id = findNext(nbNodes,
+								computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, distImpFact,
+								pheImpFact))
+						}
+						timeout--
+					} while (temp_node_id === -1 && timeout>0)
+					if(temp_node_id!==-1){
+						val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
+						if(temp_dist<dist)
+							dist = temp_dist		
+					}else{
+						loop = true
+					}
 				}
-			} while (temp_node_id === -1)
-			val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
-			if(temp_dist<dist)
-				dist = temp_dist
-		}
-
+			}
+		}while(loop)
 		return new TspPath(nbNodes, solution, dist)
 	}	
 }
@@ -241,26 +261,36 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 		var step : int
 		var dist : double = 0
 		var actualTimeStamp = initialTimeStamp
+		var loop = false
 
-		solution.set(0, idFirstNode)
-
-		for (step = 1; step < nbNodes; step++) {
-			var temp_node_id : short = (-1) as short
-
-			do {
-				if (step === nbNodes - 1 && idLastNode != -1) {
-					temp_node_id = idLastNode
-				} else {
-					temp_node_id = findNext(nbNodes,
-						computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, timeWindows,
-						actualTimeStamp, distImpFact, pheImpFact))
+		do{
+			loop = false
+			solution.set(0, idFirstNode)
+	
+			for (step = 1; step < nbNodes; step++) {
+				if(!loop){
+					var temp_node_id : short = (-1) as short
+					var timeout = 5
+					do {
+						if (step === nbNodes - 1 && idLastNode != -1) {
+							temp_node_id = idLastNode
+						} else {
+							temp_node_id = findNext(nbNodes,
+								computeProbabilities(nbNodes, env.get(solution.get(step - 1)), visited, idLastNode, timeWindows,
+								actualTimeStamp, distImpFact, pheImpFact))
+						}
+						timeout--
+					} while (temp_node_id === -1 && timeout>0)
+					if(temp_node_id!==-1){
+						val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
+						actualTimeStamp += temp_dist
+						dist += temp_dist
+					}else{
+						loop = true
+					}
 				}
-			} while (temp_node_id === -1)
-			val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
-			actualTimeStamp += temp_dist
-			dist += temp_dist
-		}
-
+			}
+		}while(loop)
 		return new TspPath(nbNodes, solution, dist)
 	}
 
