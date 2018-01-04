@@ -162,9 +162,8 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
         //Initialisation de la scène et du stage JFX + affichage de la GUI
         //TODO revoir la taille de la fenêtre
-        //TODO régler le pb du fichier css
         Scene scene = new Scene(root, 1024, 768);
-        //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        scene.getStylesheets().add("style.css");
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Ant Colony Optimisation appliqué au problème du TSP - IA54 - A2017 - BOUCHEREAU/PROST");
