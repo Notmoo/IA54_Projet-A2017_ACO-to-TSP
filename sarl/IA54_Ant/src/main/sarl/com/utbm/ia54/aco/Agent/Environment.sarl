@@ -6,33 +6,44 @@ import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.SimpleTSPEnvironment
 import com.utbm.ia54.aco.ChangeTspVersion
 import com.utbm.ia54.aco.TWTSPEnvironment
+import io.sarl.core.Logging
+import io.sarl.core.Lifecycle
 
 /** 
  * @author Mara
  */
  
 agent Environment {
-	uses Behaviors
+	uses Behaviors, Logging, Lifecycle
 
 	var tspVersion : int
 	var simpleBehavior : SimpleTSPEnvironment
 	var twBehavior : TWTSPEnvironment
 
 	on Initialize {
+		info("The agent environment was started.")
 		simpleBehavior = new SimpleTSPEnvironment(this)
-		twBehavior = new TWTSPEnvironment(this)
+		//twBehavior = new TWTSPEnvironment(this)
+		
+		// THBO
+		simpleBehavior.registerBehavior
+
+		if (!occurrence.parameters.isEmpty) {
+			spawn(Scheduler, occurrence.parameters.get(0) as Integer)
+		}
+		//twBehavior.unregisterBehavior
 	}
 	
 	on ChangeTspVersion {
 		if (occurrence.version_nb === 0 && tspVersion !== 0) {
 			simpleBehavior.registerBehavior
-			twBehavior.unregisterBehavior
+			//twBehavior.unregisterBehavior
 		} else if (occurrence.version_nb === 1 && tspVersion !== 1) {
 			simpleBehavior.registerBehavior
-			twBehavior.unregisterBehavior
+			//twBehavior.unregisterBehavior
 		} else if (occurrence.version_nb === 2 && tspVersion !== 2) {
 			simpleBehavior.unregisterBehavior
-			twBehavior.registerBehavior
+			//twBehavior.registerBehavior
 		}
 	}
 
