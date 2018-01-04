@@ -1,0 +1,117 @@
+Fonction trouverSolution(nb_noeuds, env, id_noeud_depart, id_dernier_noeud){
+	Paramètres
+		* nb_noeuds : entier
+		* env :  matrice 3D de décimaux de tailles (nb_noeuds * nb_noeuds * 2)
+		* id_noeud_depart : entier
+		* id_dernier_noeud : entier
+		* facteur_importance_distance : décimal
+		* facteur_importance_pheromone : décimal
+		
+	variables
+		* noeuds_visités : tableau de binaires de taille (nb_noeuds)
+		* noeuds_solution : tableau d'entiers de taille (nb_noeuds])
+		* proba_election_destination : tableau de décimaux de taille (nb_noeuds)
+		* numero_etape : entier
+		* distance_Atale : décimal
+		* id_prochain_noeud : entier 
+		
+	begin
+		noeuds_visités <- {false, false, ..., false}
+		noeuds_solution <- {-1, -1, ..., -1}
+		noeuds_solution[0] <- id_noeud_depart
+		numero_etape <- 0
+		distance_Atale <- 0
+		
+		POUR numero_etape de 1 à nb_noeuds-1 FAIRE{
+			id_prochain_noeud <- -1
+			
+			FAIRE{
+				SI(numero_etape = nb_noeuds-1 ET id_dernier_noeud <> -1) FAIRE{
+					id_prochain_noeud <- id_dernier_noeud
+				}SINON{
+					proba_election_destination <- calculerProbabilitéDestinations(...)
+				
+					id_prochain_noeud <- trouverProchainNoeud(nb_noeuds, proba_election_destination)
+				}
+			}TANTQUE(id_prochain_noeud = -1)
+			
+			distance_Atale <- distance_Atale + env[noeuds_solution[numero_etape-1]][id_prochain_noeud][0]
+			noeuds_solution[numero_etape] <- id_prochain_noeud
+			noeuds_visités[id_prochain_noeud] <- true
+			
+		}
+		
+		Renvoyer Résultat(noeuds_solution, distance_Atale)
+	Fin
+}
+
+FONCTION calculerProba{
+	Paramètres
+		* nb_noeuds : entier
+		* distance_destination : matrice 2D de décimaux de taille (nb_noeuds * 2)
+		* noeuds_visités : tableau de binaires de taille (nb_noeuds)
+		* id_dernier_noeud : entier
+		* facteur_importance_distance : décimal
+		* facteur_importance_pheromone : décimal
+		
+	Variables
+		* nbNoeudsEligibles : entier
+		* denominateur : décimal
+		* iter : entier
+		* proba_election_destination : tableau de décimaux de taille (nb_nodes)
+		
+	Début
+		nbNoeudsEligibles <- 0
+		AtalPheromone <- 0
+		
+		POUR iter DE 0 A nb_noeuds-1 FAIRE{
+			SI(noeuds_visités[iter] = false ET iter <> id_dernier_noeud) FAIRE{
+				nbNoeudsEligibles = nbNoeudsEligibles + 1
+				denominateur = denominateur + F(...)
+			}
+		}
+		
+		POUR iter DE 0 A nb_noeuds-1 FAIRE{
+			SI(noeuds_visités[iter] = false ET iter <> id_dernier_noeud ET iter = 0) FAIRE{
+				proba_election_destination[iter] <- F(...)
+			}SINON SI(noeuds_visités[iter] = false ET iter <> id_dernier_noeud) FAIRE{
+				proba_election_destination[iter] <- proba_election_destination[iter-1] + F(...)
+			}SINON SI(iter = 0) FAIRE{
+				proba_election_destination[iter] <- 0
+			}SINON{
+				proba_election_destination[iter] <- proba_election_destination[iter-1]
+			}
+		}
+		
+		Renvoyer proba_election_destination
+	Fin
+}
+
+FONCTION trouverProchainNoeud(nb_noeuds, proba_election_destination){
+	Paramètres
+		* nb_noeuds : entier
+		* proba_election_destination : tableau de décimaux de taille (nb_noeuds)
+		
+	Variables
+		* rand : décimal
+		* temp : entier
+		* id_noeud_elu : entier
+		
+	Début
+		rand <- nbAléaAire(0,1)
+		id_noeud_elu <- -1
+		temp <- 0
+		
+		TANTQUE (rand >= proba_election_destination[temp] ET temp<nb_noeuds) FAIRE{
+			temp = temp + 1
+		}
+		
+		SI(rand >= proba_election_destination[temp]) FAIRE{
+			id_noeud_elu <- -1
+		}SINON{
+			id_noeud_elu <- temp
+		}
+		
+		Renvoyer id_noeud_elu
+	Fin
+}
