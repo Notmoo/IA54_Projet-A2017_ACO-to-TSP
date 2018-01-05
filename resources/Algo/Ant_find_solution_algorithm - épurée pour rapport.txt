@@ -1,7 +1,7 @@
 Fonction trouverSolution(nb_noeuds, env, id_noeud_depart, id_dernier_noeud){
 	Paramètres
 		* nb_noeuds : entier
-		* env :  matrice 3D de décimaux de tailles (nb_noeuds * nb_noeuds * 2)
+		* env :  matrice 3D de décimaux de taille (nb_noeuds * nb_noeuds * 2)
 		* id_noeud_depart : entier
 		* id_dernier_noeud : entier
 		* facteur_importance_distance : décimal
@@ -45,7 +45,7 @@ Fonction trouverSolution(nb_noeuds, env, id_noeud_depart, id_dernier_noeud){
 	Fin
 }
 
-FONCTION calculerProba{
+Fonction calculerProba{
 	Paramètres
 		* nb_noeuds : entier
 		* distance_destination : matrice 2D de décimaux de taille (nb_noeuds * 2)
@@ -87,7 +87,7 @@ FONCTION calculerProba{
 	Fin
 }
 
-FONCTION trouverProchainNoeud(nb_noeuds, proba_election_destination){
+Fonction trouverProchainNoeud(nb_noeuds, proba_election_destination){
 	Paramètres
 		* nb_noeuds : entier
 		* proba_election_destination : tableau de décimaux de taille (nb_noeuds)
