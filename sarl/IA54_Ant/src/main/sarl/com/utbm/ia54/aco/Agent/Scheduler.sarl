@@ -45,7 +45,7 @@ agent Scheduler {
 		nbAntsAck = 0;
 		nbAntsCreated = 0;
 		
-		firstNodeId = (-1) as short
+		firstNodeId = (-1) as short 
 		lastNodeId = (-1) as short
 		
 		pheromoneImportanceFactor = 1f
@@ -57,6 +57,7 @@ agent Scheduler {
 	}
 	
 	on Updated {
+		info("Simple iteration started")
 		var env = occurrence.env
 		var nbNodes = occurrence.nbNodes
 
@@ -84,9 +85,11 @@ agent Scheduler {
 	}
 	
 	on AntFinished {
+		info("Ant finished")
 		nbAntsAck++
 		
 		if (nbAntsAck >= nbAnts) {
+			info("Was last ant")
 			nbAntsAck = 0
 			emit(new IterationFinished)
 		}

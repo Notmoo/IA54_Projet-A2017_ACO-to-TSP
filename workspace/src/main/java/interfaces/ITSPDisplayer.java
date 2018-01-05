@@ -9,7 +9,8 @@ public interface ITSPDisplayer {
     void displayNodes(short nbNodes);
     void clearNodes();
 
-    void displaySolution(int nbNodes, short[] solution, double dist, boolean best);
+    void displaySolution(int nbNodes, short[] solution, double dist);
+    void displaySolution(int nbNodes, short[] bestSolution, double bestDist, short[] solution, double dist);
     void clearSolutions();
 
     void addListener(ITSPDisplayerCallback l);

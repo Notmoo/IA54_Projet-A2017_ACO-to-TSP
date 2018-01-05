@@ -208,18 +208,36 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     }
 
     @Override
-    public void displaySolution(int nbNodes, short[] solution, double dist, boolean best) {
-        EdgeType type = best? EdgeType.BEST_SOLUTION : EdgeType.NORMAL;
+    public void displaySolution(int nbNodes, short[] solution, double dist) {
+        graph.clearEdges();
         for(int i =1; i<nbNodes; i++){
-            graph.addEdge(Short.toString(solution[i - 1]), Short.toString(solution[i]), type);
+            short start = (short)(solution[i - 1]+1);
+            short end = (short)(solution[i]+1);
+            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.BEST_SOLUTION);
         }
 
         Platform.runLater(()->{
             graph.applyUpdate();
+            chart.addNextDistance(dist);
+        });
+    }
 
-            if(best){
-                chart.addNextDistance(dist);
-            }
+    @Override
+    public void displaySolution(int nbNodes, short[] bestSolution, double bestDist, short[] solution, double dist) {
+        graph.clearEdges();
+        for(int i =1; i<nbNodes; i++){
+            short start = (short)(solution[i - 1]+1);
+            short end = (short)(solution[i]+1);
+            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.NORMAL);
+
+            short startForBest = (short)(bestSolution[i - 1]+1);
+            short endForBest = (short)(bestSolution[i]+1);
+            graph.addEdge(Short.toString(startForBest), Short.toString(endForBest), EdgeType.BEST_SOLUTION);
+        }
+
+        Platform.runLater(()->{
+            graph.applyUpdate();
+            chart.addNextDistance(bestDist);
         });
     }
 

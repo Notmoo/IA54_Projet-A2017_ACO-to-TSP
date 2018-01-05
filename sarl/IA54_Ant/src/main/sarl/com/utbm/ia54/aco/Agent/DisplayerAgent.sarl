@@ -3,15 +3,9 @@
  */
 package com.utbm.ia54.aco.Agent
 
-import io.sarl.core.AgentKilled
-import io.sarl.core.AgentSpawned
-import io.sarl.core.ContextJoined
-import io.sarl.core.ContextLeft
 import io.sarl.core.Destroy
 import io.sarl.core.Initialize
 import io.sarl.core.Logging
-import io.sarl.core.MemberJoined
-import io.sarl.core.MemberLeft
 import java.nio.file.Path
 import io.sarl.core.DefaultContextInteractions
 import gui.main_frame.MainFrame
@@ -19,13 +13,15 @@ import io.sarl.core.Schedules
 import interfaces.ITSPDisplayerCallback
 import io.sarl.core.Lifecycle
 import com.utbm.ia54.aco.DisplayerReady
-import com.utbm.ia54.aco.DisplaySolution
 import com.utbm.ia54.aco.DisplayNodes
 import com.utbm.ia54.aco.ClearSolutions
 import com.utbm.ia54.aco.ClearNodes
 import com.utbm.ia54.aco.TspInputFile
 import com.utbm.ia54.aco.TspPropertyChanged
 import com.utbm.ia54.aco.ApplicationClose
+import com.utbm.ia54.aco.DisplayIteration
+import com.utbm.ia54.aco.AckDisplayNodes
+import com.utbm.ia54.aco.AckDisplayIteration
 
 //-----------------------------------------
 // AGENTS
@@ -38,11 +34,18 @@ agent DisplayerAgent {
 	uses Logging, DefaultContextInteractions, Schedules, Lifecycle
 	
 	var gui : MainFrame = null
+	
+	var bestSolutionEver : short[]
+	var bestDistEver : double
+	var hasBestDistInCache : boolean
 
 	on Initialize {
 		// Event trigger before the agent begin to live or to be used.
 		// You should put all the initialization statements in this block of code.
 		loggingName = "Displayer"
+		
+		hasBestDistInCache = false
+		
 		info("The agent was started.")
 		MainFrame.summonGui
 		info("Gui has been summoned")
@@ -75,20 +78,39 @@ agent DisplayerAgent {
 		info("DisplayerAgent was stopped.")
 	}
 	
-	on DisplaySolution{
-		gui.displaySolution(occurrence.nbNodes, occurrence.nodes, occurrence.distance, occurrence.bestSolution)
+	on DisplayIteration {
+		if (!hasBestDistInCache || occurrence.distance < bestDistEver) {
+			hasBestDistInCache = true
+			bestDistEver = occurrence.distance
+			bestSolutionEver = occurrence.nodes
+			gui.displaySolution(occurrence.nbNodes, bestSolutionEver, bestDistEver)
+		} else {
+			gui.displaySolution(occurrence.nbNodes, bestSolutionEver, bestDistEver, occurrence.nodes,
+				occurrence.distance)
+		}
+		val task = task("delay_ack")
+		task.in(1000) [
+			new AckDisplayIteration().emit
+		]
 	}
 	
 	on DisplayNodes{
+		hasBestDistInCache = false
 		gui.clearNodes
 		gui.displayNodes(occurrence.nbNodes)
+		val task = task("delay_ack")
+		task.in(1000)[
+			new AckDisplayNodes().emit
+		]
 	}
 	
-	on ClearSolutions{
+	on ClearSolutions {
+		hasBestDistInCache = false
 		gui.clearSolutions
 	}
 	
-	on ClearNodes{
+	on ClearNodes {
+		hasBestDistInCache = false
 		gui.clearNodes
 	}
 	

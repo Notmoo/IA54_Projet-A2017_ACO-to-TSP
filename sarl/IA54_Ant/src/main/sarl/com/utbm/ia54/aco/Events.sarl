@@ -96,17 +96,15 @@ event AntCreatedAck
  * bestSolution: défini si la solution est celle de la convergence ou non
  */
 
-event DisplaySolution {
+event DisplayIteration {
 	val nbNodes : short
 	val nodes : short[] // liste des noeux classer dans ordre de passage
 	val distance : double
-	val bestSolution : boolean
 
-	new (nb : short, n : short[], d : double, bs : boolean) {
+	new (nb : short, n : short[], d : double) {
 		nbNodes = nb
 		nodes = n
 		distance = d
-		bestSolution = bs
 	}
 }
 
@@ -120,6 +118,10 @@ event DisplayNodes{
 		nbNodes = nb
 	}
 }
+
+event AckDisplayNodes
+
+event AckDisplayIteration
 
 event ClearNodes
 
@@ -145,7 +147,7 @@ event TspInputFile{
 
 event TspPath{
 	val nbNodes : short
-	val nodes: short[] //liste des noeux classer dans ordre de passage
+	val nodes: short[] //liste des noeuds classer dans ordre de passage
 	val distance : double	
 	
 	new (nb : short, n : short[], d : double) {

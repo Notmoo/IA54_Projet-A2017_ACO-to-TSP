@@ -7,6 +7,7 @@ import java.util.UUID
 import io.sarl.core.Initialize
 import java.util.Map
 import java.util.List
+import io.sarl.core.Logging
 
 /* ---------------------------
  * BEHAVIORS
@@ -38,28 +39,36 @@ import java.util.List
  }
  
  behavior ClassicTSPWorker extends TSPWorker{
-	uses DefaultContextInteractions, TSPPathFinder
+	uses DefaultContextInteractions, TSPPathFinder, Logging
 	
 	var currTspVersion : int
 	
 	on Initialize{
+		//TODO verif id variante pour utiliser le bottleneck
 		currTspVersion = 0
 		new SimpleTSPPathFinder().setSkill(TSPPathFinder)
 	}
 
 	on SimpleIterationStart {
+		info("Iteration start -> env id : "+envUUID)
 		if (occurrence.idFirstNode != -1) {
 			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode, distanceImportanceFactor, pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
-			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 		} else {
+			info("Computation started")
 			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
 			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode, distanceImportanceFactor,
 				pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
+			info("Computation finished")
 		}
+	}
+	
+	on AckSolution {
+		info("Ack solution")
+		new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 	}
  }
  
@@ -108,6 +117,7 @@ capacity TWTSPPathFinder {
  * ---------------------------
  */
 skill SimpleTSPPathFinder implements TSPPathFinder {
+	uses Logging
 	
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
 		pheImpFact : float) : TspPath {
@@ -116,11 +126,12 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		var step : int
 		var dist : double = 0
 		var loop = false
+
+		solution.set(0, idFirstNode)
+		visited.set(idFirstNode, true)
 		
-		do{
+		do {
 			loop = false
-			solution.set(0, idFirstNode)
-			visited.set(idFirstNode, true)
 			
 			for(step = 1; step < nbNodes; step++){
 				if(!loop){
@@ -148,7 +159,7 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 				}
 			}
 		}while(loop)
-		return new TspPath(nbNodes, solution, dist)
+	 return new TspPath(nbNodes, solution, dist)
 	}
 	
 	def computeProbabilities(nbNodes : short, destinations : float[][], visited : boolean[], idLastNode : short,
@@ -159,12 +170,12 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 		var i : int
 		
 		for(i = 0; i< nbNodes; i++){
-			if(!visited.get(i) && i!==idLastNode){
+			if (!visited.get(i) && i !== idLastNode && destinations.get(i).get(0)>0) {
 				denominateur += Math.pow(1/destinations.get(i).get(0), distImpFact) * Math.pow(destinations.get(i).get(1), pheImpFact)
 			}
 		}
 		for (i = 0; i < nbNodes; i++) {
-			if(!visited.get(i) && i !== idLastNode){
+			if (!visited.get(i) && i !== idLastNode && destinations.get(i).get(0) > 0) {
 				if (i === 0) {
 					proba.set(i, computePathProbability(destinations.get(i).get(0), destinations.get(i).get(1), distImpFact, pheImpFact, denominateur))
 				} else {

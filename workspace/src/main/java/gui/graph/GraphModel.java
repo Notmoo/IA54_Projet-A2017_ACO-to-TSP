@@ -118,6 +118,9 @@ public class GraphModel {
         Cell sourceCell = cellMap.get( sourceId);
         Cell targetCell = cellMap.get( targetId);
 
+        //TODO to remove
+        System.out.println("source : "+(sourceId)+" | target : "+(targetId));
+        System.out.println("source : "+sourceCell+" | target : "+targetCell+" | type : "+type);
         Edge edge = new Edge( sourceCell, targetCell, type);
 
         addedEdges.add(edge);
