@@ -5,11 +5,11 @@ import io.sarl.core.Initialize
 import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.SimpleTSPEnvironment
 import com.utbm.ia54.aco.TWTSPEnvironment
-import parser.FileParser
 import com.utbm.ia54.aco.NewEnvironment
 import io.sarl.core.DefaultContextInteractions
 import com.utbm.ia54.aco.TspInputFile
 import com.utbm.ia54.aco.ApplicationClose
+import io.sarl.core.Logging
 import io.sarl.core.Lifecycle
 
 /** 
@@ -17,18 +17,22 @@ import io.sarl.core.Lifecycle
  */
  
 agent Environment {
-	uses Behaviors, DefaultContextInteractions, Lifecycle
+	uses Behaviors, DefaultContextInteractions, Lifecycle, Logging
 
 	var tspVersion : int
 	var simpleBehavior : SimpleTSPEnvironment
 	var twBehavior : TWTSPEnvironment
 
 	on Initialize {
+		info("The agent environment was started.")
 		simpleBehavior = new SimpleTSPEnvironment(this)
 		twBehavior = new TWTSPEnvironment(this)
 		
 		tspVersion = 0
 		simpleBehavior.registerBehavior
+		if (!occurrence.parameters.isEmpty) {
+			spawn(Scheduler, occurrence.parameters.get(0) as Integer)
+		}
 	}
 
 	on TspInputFile {
@@ -51,8 +55,7 @@ agent Environment {
 		}else if (tspVersion === 2) {
 			// TODO résoudre le problème de mapping avec le param 'envData.timeWindow'
 			//new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
-		}
-			
+		}	
 	}
 	
 	on ApplicationClose{

@@ -36,6 +36,7 @@ agent Scheduler {
 
 	on Initialize {
 		loggingName = "Scheduler"
+		info("The agent was started.")
 		
 		if (!occurrence.parameters.isEmpty) {
 			nbAnts = occurrence.parameters.get(0) as Integer

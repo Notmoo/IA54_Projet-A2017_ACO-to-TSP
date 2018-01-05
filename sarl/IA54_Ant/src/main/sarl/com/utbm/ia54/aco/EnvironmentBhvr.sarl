@@ -14,6 +14,7 @@ abstract behavior AbstractTSPEnvironment {
 	uses Logging, Lifecycle, DefaultContextInteractions
 	/********************************************************************** 
 	 */
+	protected var envIsInit : boolean
 	protected var env : float[][][] // trois dim, a voir avec Cess pour implémenter ce qu'il a fait
 	protected var nbNodes : short
 	//TODO demander à Mara ce que c'est
@@ -26,6 +27,8 @@ abstract behavior AbstractTSPEnvironment {
 	
 	protected var solution : float[][]
 	protected var distanceMin : double
+	
+    protected var idScheduler : UUID
 
 	/********************************************************************** 
 	 */
@@ -50,7 +53,7 @@ abstract behavior AbstractTSPEnvironment {
 		distanceFactor = 1f
 		defaultPheromoneLevel = 1f
 		pheromoneEvaporationFactor = 0.5f
-		
+		envIsInit = false
 	}
 
 	on Destroy {
@@ -58,9 +61,9 @@ abstract behavior AbstractTSPEnvironment {
 
 	on RequestUpdate {
 		sendToZero()
-		if (env.isEmpty) {
-			var senderID = occurrence.source.getUUID
-			sendUpdateEvent(senderID)
+    	idScheduler = occurrence.source.getUUID
+		if (envIsInit) {
+			sendUpdateEvent(idScheduler)
 		}
 	}
 
@@ -121,6 +124,8 @@ abstract behavior AbstractTSPEnvironment {
 						(env.get(i).get(j).get(1) + distanceFactor * solution.get(i).get(j) / env.get(i).get(j).get(0)))
 			}
 		}
+		
+		new Updated(env, nbNodes).emit[it.UUID === idScheduler] 
 	}
 
 	def sendToZero() {

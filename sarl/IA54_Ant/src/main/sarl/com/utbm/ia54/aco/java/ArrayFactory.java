@@ -31,4 +31,8 @@ public final class ArrayFactory {
 	public static double[] newDoubleArray(short size) {
 		return new double[size];
 	}
+	
+	public static float[][] newResultFloat2DMatrix(short nbNodes){
+		return new float[nbNodes][nbNodes];
+	}
 }
