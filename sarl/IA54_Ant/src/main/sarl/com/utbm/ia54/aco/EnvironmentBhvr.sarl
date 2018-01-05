@@ -34,11 +34,10 @@ abstract behavior AbstractTSPEnvironment {
     if (!occurrence.parameters.isEmpty) { 
       nbAnts = occurrence.parameters.get(0) as Integer 
     } 
- 
-    spawn(Scheduler, nbAnts) // nbAnts à passer en paramètre 
+    
     distanceMin = -1 
     Q = 1 
-    alpha = 1 
+    alpha = 1
     betha = 0.5f 
      
   } 
@@ -46,13 +45,15 @@ abstract behavior AbstractTSPEnvironment {
   on Destroy { 
   } 
  
-  on com.utbm.ia54.aco.RequestUpdate { 
+  on com.utbm.ia54.aco.RequestUpdate {
+	info("here")
     sendToZero()
     idScheduler = occurrence.source.getUUID
-    if (env.isEmpty) { 
+    sendUpdateEvent(idScheduler)
+    /*if (env.isEmpty) { 
       var senderID = occurrence.source.getUUID 
-      sendUpdateEvent(senderID) 
-    } 
+      sendUpdateEvent(senderID)
+    } */
   } 
  
   on com.utbm.ia54.aco.TspPath { 
@@ -89,7 +90,8 @@ abstract behavior AbstractTSPEnvironment {
     } 
   } 
  
-  def updateEnvironment() { 
+  def updateEnvironment() {
+  	info("check")
     for (var i = 0; i < nbNodes; i++) { 
       for (var j = 0; j < nbNodes; j++) { 
         env.get(i).get(j).set(1, 
@@ -135,7 +137,7 @@ behavior SimpleTSPEnvironment extends AbstractTSPEnvironment {
   } 
  
   on TspInputFile { 
-    FileParser.loadEnv(occurrence.path.toString, defaultPheromoneLevel) 
+    //FileParser.loadEnv(occurrence.path.toString, defaultPheromoneLevel)
   } 
    
 } 
