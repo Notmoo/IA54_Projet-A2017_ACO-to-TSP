@@ -37,7 +37,7 @@ public class PropertyToolbar {
             }
         });
         guiProperties = new HashMap<>();
-
+        mainPane = new VBox();
         updateGui();
     }
 
@@ -57,7 +57,7 @@ public class PropertyToolbar {
     }
 
     private void updateGui() {
-            mainPane = new VBox();
+            mainPane.getChildren().clear();
             GridPane grid = new GridPane();
 
             int rowCount = 0;
