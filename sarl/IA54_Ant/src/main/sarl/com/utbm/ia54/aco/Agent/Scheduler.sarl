@@ -17,6 +17,7 @@ import com.utbm.ia54.aco.TWUpdated
 import com.utbm.ia54.aco.TWIterationStart
 import com.utbm.ia54.aco.TspPropertyChanged
 import com.utbm.ia54.aco.ApplicationClose
+import com.utbm.ia54.aco.java.StringDef
 
 /** 
  * @author Mara
@@ -40,16 +41,19 @@ agent Scheduler {
 		
 		if (!occurrence.parameters.isEmpty) {
 			nbAnts = occurrence.parameters.get(0) as Integer
+		}else{
+			error("Number of ants not specified to scheduler")
+			killMe
 		}
 
 		nbAntsAck = 0;
 		nbAntsCreated = 0;
 		
-		firstNodeId = (-1) as short 
-		lastNodeId = (-1) as short
+		firstNodeId = Short.parseShort(StringDef.FIRST_NODE_ID_STR.defaulValue)
+		lastNodeId = Short.parseShort(StringDef.LAST_NODE_ID_STR.defaulValue)
 		
-		pheromoneImportanceFactor = 1f
-		distanceImportanceFactor = 1f
+		pheromoneImportanceFactor = Float.parseFloat(StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.defaulValue)
+		distanceImportanceFactor = Float.parseFloat(StringDef.ANT_DISTANCE_IMPORTANCE_FACTOR_STR.defaulValue)
 		
 		for (var i = 0; i < nbAnts; i++) {
 			spawn(AntAgent, i);
@@ -98,33 +102,33 @@ agent Scheduler {
 	on TspPropertyChanged {
 		info("Property changed received : " + occurrence.property_id + " -> " + occurrence.property_value)
 		switch occurrence.property_id{
-			case "number of ants": {
+			case StringDef.NB_OF_ANTS_STR.label: {
 				//TODO uncomment this
 				// var temp = Integer.parseInt(occurrence.property_value)
 				// nbAnts = temp
 				// TODO rebuild toutes les fourmis
 			}
-			case "first node id": {
+			case StringDef.FIRST_NODE_ID_STR.label: {
 				var temp = Short.parseShort(occurrence.property_value)
 				if (temp !== lastNodeId || temp === -1) {
 					firstNodeId = temp
 				}
 			}
-			case "last node id": {
+			case StringDef.LAST_NODE_ID_STR.label: {
 				var temp = Short.parseShort(occurrence.property_value)
 				if(temp!==firstNodeId || temp === -1){
 					lastNodeId = temp
 				}
 			}
-			case "pheromone importance factor for ants": {
+			case StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.label: {
 				var temp = Float.parseFloat(occurrence.property_value)
 				pheromoneImportanceFactor = temp
-					// TODO rebuild toutes les fourmis
+				// TODO rebuild toutes les fourmis
 			}
-			case "distance importance factor for ants": {
+			case StringDef.ANT_DISTANCE_IMPORTANCE_FACTOR_STR.label: {
 				var temp = Float.parseFloat(occurrence.property_value)
 				distanceImportanceFactor = temp
-					// TODO rebuild toutes les fourmis
+				// TODO rebuild toutes les fourmis
 			}
 		}
 	}

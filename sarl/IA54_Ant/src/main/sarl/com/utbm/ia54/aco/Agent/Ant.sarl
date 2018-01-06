@@ -11,6 +11,7 @@ import com.utbm.ia54.aco.ClassicTSPWorker
 import com.utbm.ia54.aco.TWTSPWorker
 import com.utbm.ia54.aco.ApplicationClose
 import com.utbm.ia54.aco.ImportanceFactorChanged
+import com.utbm.ia54.aco.java.StringDef
 
 //-----------------------------------------
 //		AGENTS
@@ -35,6 +36,8 @@ agent AntAgent{
 				
 			}else{
 				currTspVersionNb = 0
+				pheromoneImportanceFactor = Float.parseFloat(StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.defaulValue)
+				distanceImportanceFactor = Float.parseFloat(StringDef.ANT_DISTANCE_IMPORTANCE_FACTOR_STR.defaulValue)
 			}
 				
 			switch (currTspVersionNb){

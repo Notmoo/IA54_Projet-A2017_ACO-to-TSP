@@ -22,8 +22,6 @@ import io.sarl.core.Logging
 	
 	on AntCreatedAck {
 		envUUID = occurrence.source.UUID
-		distanceImportanceFactor = 1 as float
-		pheromoneImportanceFactor = 1 as float
 	}
 	
 	on ImportanceFactorChanged[isFromMe]{
@@ -117,7 +115,6 @@ capacity TWTSPPathFinder {
  * ---------------------------
  */
 skill SimpleTSPPathFinder implements TSPPathFinder {
-	uses Logging
 	
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
 		pheImpFact : float) : TspPath {

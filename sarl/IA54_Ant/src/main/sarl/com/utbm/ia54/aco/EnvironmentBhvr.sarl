@@ -1,27 +1,27 @@
 package com.utbm.ia54.aco
 
 import io.sarl.core.Logging
-import io.sarl.core.Lifecycle
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Destroy
 import io.sarl.core.Initialize
-import com.utbm.ia54.aco.Agent.Scheduler
 import java.util.UUID
 import java.util.Map
 import java.util.List
 import com.utbm.ia54.aco.java.ArrayFactory
+import com.utbm.ia54.aco.java.StringDef
 
 abstract behavior AbstractTSPEnvironment {
-	uses Logging, Lifecycle, DefaultContextInteractions
+	uses Logging, DefaultContextInteractions
 	/********************************************************************** 
 	 */
 	protected var envIsInit : boolean = false
-	protected var env : float[][][] // trois dim, a voir avec Cess pour implémenter ce qu'il a fait
+	protected var env : float[][][] // trois dim, nbNodes*nbNodes*2
 	protected var nbNodes : short = 1 as short
 	
 	protected var defaultPheromoneLevel : float = 1f// Niveau initial de phéromones
-	protected var pheromoneEvaporationFactor : float = 0.5f// Variable pour l'importance de l'évaporation des phéromones dans l'env
-	protected var distanceFactor : float = 1f// Variable pour l'importance de la distance dans l'env
+	protected var pheromoneEvaporationFactor : float = Float.
+		parseFloat(StringDef.ENV_PHEROMONE_IMPORTANCE_FACTOR_STR.defaulValue) // Variable pour l'importance de l'évaporation des phéromones dans l'env
+	protected var distanceFactor : float = Float.parseFloat(StringDef.ENV_DISTANCE_IMPORTANCE_FACTOR_STR.defaulValue)// Variable pour l'importance de la distance dans l'env
 	
 	
 	protected var solution : float[][]
@@ -66,11 +66,11 @@ abstract behavior AbstractTSPEnvironment {
 	
 	on TspPropertyChanged {
 		switch occurrence.property_id {
-			case "distance importance in env": {
+			case StringDef.ENV_DISTANCE_IMPORTANCE_FACTOR_STR.label: {
 				var temp = Float.parseFloat(occurrence.property_value)
 				distanceFactor = temp
 			}
-			case "pheromone evaporation factor": {
+			case StringDef.ENV_PHEROMONE_IMPORTANCE_FACTOR_STR.label: {
 				var temp = Float.parseFloat(occurrence.property_value)
 				pheromoneEvaporationFactor = temp
 			}

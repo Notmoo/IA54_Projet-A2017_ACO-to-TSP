@@ -22,6 +22,8 @@ import com.utbm.ia54.aco.ApplicationClose
 import com.utbm.ia54.aco.DisplayIteration
 import com.utbm.ia54.aco.AckDisplayNodes
 import com.utbm.ia54.aco.AckDisplayIteration
+import java.util.HashMap
+import com.utbm.ia54.aco.java.StringDef
 
 //-----------------------------------------
 // AGENTS
@@ -67,6 +69,19 @@ agent DisplayerAgent {
 						fireTspPropertyChangedEvent(key, value)
 					}
 				})
+				var properties = new HashMap<String, String>();
+				for(prop : StringDef.getAll){
+					properties.put(prop.label, prop.defaulValue)
+				}
+				
+				//XXX
+				var sb = new StringBuffer("\nPROPERTIES : \n")
+				for(key : properties.keySet){
+					sb.append(key).append(" : ").append(properties.get(key)).append("\n")
+				}
+				info(sb.toString)
+				
+				gui.properties = properties
 				task.cancel
 			}
 		]
