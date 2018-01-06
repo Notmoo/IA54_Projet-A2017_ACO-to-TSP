@@ -98,19 +98,16 @@ public class GraphModel {
     }
 
     private void addCell( Cell cell) {
-
         addedCells.add(cell);
-
         cellMap.put( cell.getCellId(), cell);
-
     }
 
     public void removeAllCells(){
         removeAllEdges();
-        cellMap.clear();
-        removedCells.clear();
-        removedCells.addAll(allCells);
-        allCells.clear();
+        allCells.forEach(cell -> {
+            if(!removedCells.contains(cell))
+                removedCells.add(cell);
+        });
     }
 
     public void addEdge( String sourceId, String targetId, EdgeType type) {
@@ -118,18 +115,16 @@ public class GraphModel {
         Cell sourceCell = cellMap.get( sourceId);
         Cell targetCell = cellMap.get( targetId);
 
-        //TODO to remove
-        System.out.println("source : "+(sourceId)+" | target : "+(targetId));
-        System.out.println("source : "+sourceCell+" | target : "+targetCell+" | type : "+type);
         Edge edge = new Edge( sourceCell, targetCell, type);
 
         addedEdges.add(edge);
     }
 
     public void removeAllEdges(){
-        removedEdges.clear();
-        removedEdges.addAll(allEdges);
-        allEdges.clear();
+        allEdges.forEach(edge -> {
+            if(!removedEdges.contains(edge))
+                removedEdges.add(edge);
+        });
     }
 
     /**
@@ -162,6 +157,9 @@ public class GraphModel {
         // cells
         allCells.addAll( addedCells);
         allCells.removeAll( removedCells);
+
+        cellMap.clear();
+        allCells.forEach(cell->cellMap.put(cell.getCellId(), cell));
 
         addedCells.clear();
         removedCells.clear();

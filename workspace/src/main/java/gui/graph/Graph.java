@@ -53,16 +53,14 @@ public class Graph {
 
     public void applyUpdate() {
 
-        getCellLayer().getChildren().clear();
-        getCellLayer().getChildren().addAll(model.getAllCells());
-        getCellLayer().getChildren().addAll(model.getAllEdges());
-        // add components to graph pane
-        //getCellLayer().getChildren().addAll(model.getAddedEdges());
-        //getCellLayer().getChildren().addAll(model.getAddedCells());
 
-        // remove components from graph pane
-        //getCellLayer().getChildren().removeAll(model.getRemovedCells());
-        //getCellLayer().getChildren().removeAll(model.getRemovedEdges());
+
+        // add components to graph pane
+        getCellLayer().getChildren().addAll(model.getAddedCells());
+        getCellLayer().getChildren().addAll(model.getAddedEdges());
+
+        getCellLayer().getChildren().removeAll(model.getRemovedCells());
+        getCellLayer().getChildren().removeAll(model.getRemovedEdges());
 
         // enable dragging of cells
         for (Cell cell : model.getAddedCells()) {

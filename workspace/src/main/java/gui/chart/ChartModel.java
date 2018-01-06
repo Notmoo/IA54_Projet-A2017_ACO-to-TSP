@@ -30,6 +30,7 @@ public class ChartModel {
     }
 
     void clear() {
+        iterationNb = 0;
         datas.clear();
         Arrays.stream(listenerList.getListeners(IChartModelListener.class))
                 .forEach(IChartModelListener::onDataModified);

@@ -228,10 +228,10 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         for(int i =1; i<nbNodes; i++){
             short start = (short)(solution[i - 1]+1);
             short end = (short)(solution[i]+1);
-            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.NORMAL);
 
             short startForBest = (short)(bestSolution[i - 1]+1);
             short endForBest = (short)(bestSolution[i]+1);
+            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.NORMAL);
             graph.addEdge(Short.toString(startForBest), Short.toString(endForBest), EdgeType.BEST_SOLUTION);
         }
 
