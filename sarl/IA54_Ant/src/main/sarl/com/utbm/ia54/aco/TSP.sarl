@@ -31,7 +31,7 @@ import io.sarl.core.Logging
 			pheromoneImportanceFactor = occurrence.pheromoneImportanceFactor
 	}
 
-	on AckSolution [occurrence.source.UUID === envUUID] {
+	on AckSolution {
 		new AntFinished().emit
 	}
  }
@@ -62,11 +62,6 @@ import io.sarl.core.Logging
 			]
 			info("Computation finished")
 		}
-	}
-	
-	on AckSolution {
-		info("Ack solution")
-		new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 	}
  }
  
