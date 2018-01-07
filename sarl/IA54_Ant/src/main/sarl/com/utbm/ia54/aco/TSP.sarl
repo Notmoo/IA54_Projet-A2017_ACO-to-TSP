@@ -4,17 +4,15 @@ import com.utbm.ia54.aco.java.ArrayFactory
 import java.util.Random
 import io.sarl.core.DefaultContextInteractions
 import java.util.UUID
-import io.sarl.core.Initialize
 import java.util.Map
 import java.util.List
-import io.sarl.core.Logging
 
 /* ---------------------------
  * BEHAVIORS
  * ---------------------------
  */
  abstract behavior TSPWorker{
- 	uses DefaultContextInteractions, Logging
+ 	uses DefaultContextInteractions
 
 	protected var envUUID : UUID
 	protected var distanceImportanceFactor : float
@@ -37,30 +35,19 @@ import io.sarl.core.Logging
  }
  
  behavior ClassicTSPWorker extends TSPWorker{
-	uses DefaultContextInteractions, TSPPathFinder, Logging
-	
-	var currTspVersion : int
-	
-	on Initialize{
-		//TODO verif id variante pour utiliser le bottleneck
-		currTspVersion = 0
-		new SimpleTSPPathFinder().setSkill(TSPPathFinder)
-	}
+	uses DefaultContextInteractions, TSPPathFinder
 
 	on SimpleIterationStart {
-		info("Iteration start -> env id : "+envUUID)
 		if (occurrence.idFirstNode != -1) {
 			findPath(occurrence.nbNodes, occurrence.env, occurrence.idFirstNode, occurrence.idLastNode, distanceImportanceFactor, pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
 		} else {
-			info("Computation started")
 			val idFirstNode : short = (new Random().nextInt(occurrence.nbNodes - 1) + 1) as short
 			findPath(occurrence.nbNodes, occurrence.env, idFirstNode, occurrence.idLastNode, distanceImportanceFactor,
 				pheromoneImportanceFactor).emit [
 				it.getUUID === envUUID
 			]
-			info("Computation finished")
 		}
 	}
 
@@ -74,10 +61,6 @@ import io.sarl.core.Logging
  
  behavior TWTSPWorker extends TSPWorker {
 	uses DefaultContextInteractions, TWTSPPathFinder
-
-	on Initialize {
-		new TimeWindowTSPPathFinder().setSkill(TWTSPPathFinder)
-	}
 
 	on TWIterationStart {
 		if (occurrence.idFirstNode != -1) {
@@ -94,6 +77,10 @@ import io.sarl.core.Logging
 			]
 			new AntFinished().emit[it.getUUID === occurrence.source.getUUID]
 		}
+	}
+
+	on AntData [isFromMe] {
+		new TimeWindowTSPPathFinder().setSkill(TWTSPPathFinder)
 	}
  }
 
