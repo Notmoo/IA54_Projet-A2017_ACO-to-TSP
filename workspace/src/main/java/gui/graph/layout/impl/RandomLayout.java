@@ -19,15 +19,14 @@ public class RandomLayout extends Layout {
 
     }
 
-    public void execute() {
+    public void execute(double width, double height) {
 
         List<Cell> cells = graph.getAllCells();
 
         for (Cell cell : cells) {
 
-            //TODO modifier les tailles pour fit la taille actuelle de la zone de graph
-            double x = rnd.nextDouble() * 500;
-            double y = rnd.nextDouble() * 500;
+            double x = rnd.nextDouble() * width*0.9 + width*0.05;
+            double y = rnd.nextDouble() * height*0.9 + height*0.05;
 
             cell.relocate(x, y);
 

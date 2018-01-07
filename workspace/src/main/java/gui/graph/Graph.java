@@ -99,7 +99,7 @@ public class Graph {
 
     public void clearEdges(){model.removeAllEdges();}
 
-    public Node getContent() {
+    public ScrollPane getContent() {
         return this.scrollPane;
     }
 }

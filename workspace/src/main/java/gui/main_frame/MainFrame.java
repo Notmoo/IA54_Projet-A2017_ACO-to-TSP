@@ -93,11 +93,19 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         //Initialisation de du pane pricipal
         root = new BorderPane();
 
+        //Initialisation de la scène
+        Scene scene = new Scene(root, 500, 500);
+        scene.getStylesheets().add("style.css");
+
+        root.prefWidthProperty().bind(scene.widthProperty());
+        root.prefHeightProperty().bind(scene.heightProperty());
+
         //Initialisation du pane contenant le graph
         graph = new Graph();
 
+
         Layout layout = new RandomLayout(graph);
-        layout.execute();
+        layout.execute(graph.getContent().widthProperty().get(), graph.getContent().heightProperty().get());
 
         //Initialisation du pane contenant les courbes
         chart = new Chart();
@@ -160,13 +168,10 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         requestedScreen = GRAPH_STRING_ID;
         updateScreen();
 
-        //Initialisation de la scène et du stage JFX + affichage de la GUI
-        //TODO revoir la taille de la fenêtre
-        Scene scene = new Scene(root, 1024, 768);
-        scene.getStylesheets().add("style.css");
-
+        //Update du stage JFX et affichage
         primaryStage.setScene(scene);
         primaryStage.setTitle("Ant Colony Optimisation appliqué au problème du TSP - IA54 - A2017 - BOUCHEREAU/PROST");
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
@@ -185,7 +190,8 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         }
         Platform.runLater(()->{
             graph.applyUpdate();
-            new RandomLayout(graph).execute();
+
+            new RandomLayout(graph).execute(graph.getContent().widthProperty().get(), graph.getContent().heightProperty().get());
             chart.clearChart();
         });
     }
