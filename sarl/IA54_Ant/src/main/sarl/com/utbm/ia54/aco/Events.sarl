@@ -114,3 +114,9 @@ event TspPath{
 event AckSolution
 
 event IterationFinished
+
+event ApplicationClose
+
+event KillAnts
+
+event AntKilled

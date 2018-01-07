@@ -67,18 +67,62 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
         root = new BorderPane();
 
+<<<<<<< Updated upstream
         scene = new Scene(root, 1024, 768);
         //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
+=======
+        //Initialisation du pane contenant le graph
+>>>>>>> Stashed changes
         graph = new Graph();
 
         Layout layout = new RandomLayout(graph);
         layout.execute();
+<<<<<<< Updated upstream
+=======
+
+        //Initialisation du pane contenant les courbes
+        chart = new Chart();
+
+        //Initialisation de la barre de propriété latérale
+        toolbar = new PropertyToolbar();
+        root.setRight(toolbar.getContent());
+        toolbar.addListener(((property, value) -> {
+            Arrays.stream(listenerList.getListeners(ITSPDisplayerCallback.class))
+                    .forEach(l->l.onPropertyChanged(property, value));
+        }));
+
+        //Initialisation de la barre de menu
+        Menu navMenu = new Menu("Ecrans");
+        ToggleGroup tGroup = new ToggleGroup();
+        RadioMenuItem graphMenuItem = new RadioMenuItem(GRAPH_STRING_ID);
+        graphMenuItem.setToggleGroup(tGroup);
+        graphMenuItem.setSelected(true);
+        graphMenuItem.setOnAction(event->{
+            requestedScreen = GRAPH_STRING_ID;
+            updateScreen();
+        });
+        RadioMenuItem chartMenuItem = new RadioMenuItem(CHART_STRING_ID);
+        chartMenuItem.setOnAction(event->{
+            requestedScreen = CHART_STRING_ID;
+            updateScreen();
+        });
+        chartMenuItem.setToggleGroup(tGroup);
+        navMenu.getItems().addAll(graphMenuItem, chartMenuItem);
+>>>>>>> Stashed changes
 
 
         requestedScreen = "graph";
         updateScreen();
 
+<<<<<<< Updated upstream
+=======
+        //Initialisation de la scène et du stage JFX + affichage de la GUI
+        //TODO revoir la taille de la fenêtre
+        Scene scene = new Scene(root, 1024, 768);
+        scene.getStylesheets().add("style.css");
+
+>>>>>>> Stashed changes
         primaryStage.setScene(scene);
         primaryStage.setTitle("Ant Colony Optimisation appliqué au problème du TSP - IA54 - A2017 - BOUCHEREAU/PROST");
         primaryStage.show();
@@ -89,7 +133,24 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         for(short s : nodes.keySet()){
             graph.addCell(convertToCellTag(s, nodes.get(s)), CellType.SIMPLE);
         }
+<<<<<<< Updated upstream
         graph.applyUpdate();
+=======
+        Platform.runLater(()->{
+            graph.applyUpdate();
+            new RandomLayout(graph).execute();
+            chart.clearChart();
+        });
+    }
+
+    @Override
+    public void displayNodes(short nbNodes) {
+        Map<Short, String> nodes = new HashMap<>();
+        for(short i = 1; i<=nbNodes; i++){
+            nodes.put(i, "Node n°"+i);
+        }
+        displayNodes(nodes);
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -105,8 +166,28 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         }
         graph.applyUpdate();
 
+<<<<<<< Updated upstream
         if(best){
             //TODO update chart
+=======
+        Platform.runLater(()->{
+            graph.applyUpdate();
+            chart.addNextDistance(dist);
+        });
+    }
+
+    @Override
+    public void displaySolution(int nbNodes, short[] bestSolution, double bestDist, short[] solution, double dist) {
+        graph.clearEdges();
+        for(int i =1; i<nbNodes; i++){
+            short start = (short)(solution[i - 1]+1);
+            short end = (short)(solution[i]+1);
+            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.NORMAL);
+
+            short startForBest = (short)(bestSolution[i - 1]+1);
+            short endForBest = (short)(bestSolution[i]+1);
+            graph.addEdge(Short.toString(startForBest), Short.toString(endForBest), EdgeType.BEST_SOLUTION);
+>>>>>>> Stashed changes
         }
     }
 

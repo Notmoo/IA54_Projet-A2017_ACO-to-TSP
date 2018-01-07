@@ -14,6 +14,20 @@ import io.sarl.core.MemberJoined
 import io.sarl.core.MemberLeft
 import java.nio.file.Path
 import io.sarl.core.DefaultContextInteractions
+import gui.main_frame.MainFrame
+import io.sarl.core.Schedules
+import interfaces.ITSPDisplayerCallback
+import io.sarl.core.Lifecycle
+import com.utbm.ia54.aco.DisplayerReady
+import com.utbm.ia54.aco.DisplayNodes
+import com.utbm.ia54.aco.ClearSolutions
+import com.utbm.ia54.aco.ClearNodes
+import com.utbm.ia54.aco.TspInputFile
+import com.utbm.ia54.aco.TspPropertyChanged
+import com.utbm.ia54.aco.ApplicationClose
+import com.utbm.ia54.aco.DisplayIteration
+import com.utbm.ia54.aco.AckDisplayNodes
+import com.utbm.ia54.aco.AckDisplayIteration
 
 // XXX remove theses events (placeholders)
 event display_solution{
@@ -72,7 +86,29 @@ agent DisplayerAgent {
 		// Event trigger before the agent begin to live or to be used.
 		// You should put all the initialization statements in this block of code.
 		info("The agent was started.")
-		new displayer_ready().emit
+		MainFrame.summonGui
+		info("Gui has been summoned")
+		val task = task("waiting_for_gui_to_init")
+		task.every(1000) [
+			if (MainFrame.instance !== null) {
+				gui = MainFrame.instance
+				new DisplayerReady().emit
+				gui.addListener(new ITSPDisplayerCallback() {
+					def onFileInput(filePath : Path) {
+						fireInputFileRequested(filePath)
+					}
+					
+					def onGuiClose {
+						fireCloseEvent
+					}
+					
+					def onPropertyChanged(key : String, value : String) {
+						fireTspPropertyChangedEvent(key, value)
+					}
+				})
+				task.cancel
+			}
+		]
 	}
 
 	on Destroy {

@@ -53,6 +53,7 @@ public class Graph {
 
     public void applyUpdate() {
 
+<<<<<<< Updated upstream
         // add components to graph pane
         getCellLayer().getChildren().addAll(model.getAddedEdges());
         getCellLayer().getChildren().addAll(model.getAddedCells());
@@ -60,6 +61,18 @@ public class Graph {
         // remove components from graph pane
         getCellLayer().getChildren().removeAll(model.getRemovedCells());
         getCellLayer().getChildren().removeAll(model.getRemovedEdges());
+=======
+        getCellLayer().getChildren().clear();
+        getCellLayer().getChildren().addAll(model.getAllCells());
+        getCellLayer().getChildren().addAll(model.getAllEdges());
+        // add components to graph pane
+        //getCellLayer().getChildren().addAll(model.getAddedEdges());
+        //getCellLayer().getChildren().addAll(model.getAddedCells());
+
+        // remove components from graph pane
+        //getCellLayer().getChildren().removeAll(model.getRemovedCells());
+        //getCellLayer().getChildren().removeAll(model.getRemovedEdges());
+>>>>>>> Stashed changes
 
         // enable dragging of cells
         for (Cell cell : model.getAddedCells()) {

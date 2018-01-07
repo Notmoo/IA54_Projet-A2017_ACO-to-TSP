@@ -7,6 +7,18 @@ import io.sarl.core.Initialize
 import io.sarl.core.Logging
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Lifecycle
+import com.utbm.ia54.aco.Updated
+import com.utbm.ia54.aco.AntCreated
+import com.utbm.ia54.aco.RequestUpdate
+import com.utbm.ia54.aco.AntFinished
+import com.utbm.ia54.aco.IterationFinished
+import com.utbm.ia54.aco.SimpleIterationStart
+import com.utbm.ia54.aco.TWUpdated
+import com.utbm.ia54.aco.TWIterationStart
+import com.utbm.ia54.aco.TspPropertyChanged
+import com.utbm.ia54.aco.ApplicationClose
+import com.utbm.ia54.aco.KillAnts
+import com.utbm.ia54.aco.AntKilled
 
 /** 
  * @author Mara
@@ -16,17 +28,35 @@ agent Scheduler {
 	
 	var nbAnts : int
 	var nbAntsAck : int
+	var oldnbAnts : int
 	var nbAntsCreated : int
+	var nbAntsKilled : int
+	var antMustDied : boolean
+	
+	var firstNodeId : short
+	var lastNodeId : short
+	
+	var pheromoneImportanceFactor : float
+	var distanceImportanceFactor : float
 
 	on Initialize {
 		loggingName = "Scheduler"
 		
 		if (!occurrence.parameters.isEmpty) {
 			nbAnts = occurrence.parameters.get(0) as Integer
+			oldnbAnts = nbAnts
 		}
 
 		nbAntsAck = 0;
 		nbAntsCreated = 0;
+		nbAntsKilled = 0;
+		antMustDied = false;
+		
+		firstNodeId = (-1) as short 
+		lastNodeId = (-1) as short
+		
+		pheromoneImportanceFactor = 1f
+		distanceImportanceFactor = 1f
 		
 		for (var i = 0; i < nbAnts; i++) {
 			spawn(AntAgent, i);
@@ -36,9 +66,13 @@ agent Scheduler {
 	on Updated {
 		var env = occurrence.env
 		var nbNodes = occurrence.nbNodes
-
-		var newEvent = new IterationStart(nbNodes, env, (-1) as short, (-1) as short)
-		emit(newEvent)
+		
+		if(antMustDied){
+			new KillAnts().emit
+		}
+		else {
+			new SimpleIterationStart(nbNodes, env, (-1) as short, (-1) as short).emit			
+		}
 	}
 	
 	on AntCreated {
@@ -49,6 +83,16 @@ agent Scheduler {
 		}
 	}
 	
+	on AntKilled{
+		nbAntsKilled ++
+		if (nbAntsKilled >= oldnbAnts) {
+			nbAntsKilled = 0
+			for (var i = 0; i < nbAnts; i++) {
+				spawn(AntAgent, i);
+			}
+		}
+	}
+	
 	on AntFinished {
 		nbAntsAck++
 		
@@ -56,5 +100,43 @@ agent Scheduler {
 			nbAntsAck = 0
 			emit(new IterationFinished)
 		}
+	}
+	
+	on TspPropertyChanged {
+		info("Property changed received : " + occurrence.property_id + " -> " + occurrence.property_value)
+		switch occurrence.property_id{
+			case "number of ants": {
+				//TODO uncomment this
+				// var temp = Integer.parseInt(occurrence.property_value)
+				// nbAnts = temp
+				antMustDied = true
+			}
+			case "first node id": {
+				var temp = Short.parseShort(occurrence.property_value)
+				if (temp !== lastNodeId || temp === -1) {
+					firstNodeId = temp
+				}
+			}
+			case "last node id": {
+				var temp = Short.parseShort(occurrence.property_value)
+				if(temp!==firstNodeId || temp === -1){
+					lastNodeId = temp
+				}
+			}
+			case "pheromone importance factor for ants": {
+				var temp = Float.parseFloat(occurrence.property_value)
+				pheromoneImportanceFactor = temp
+				antMustDied = true
+			}
+			case "distance importance factor for ants": {
+				var temp = Float.parseFloat(occurrence.property_value)
+				distanceImportanceFactor = temp
+				antMustDied = true
+			}
+		}
+	}
+	
+	on ApplicationClose{
+		killMe
 	}
 }
