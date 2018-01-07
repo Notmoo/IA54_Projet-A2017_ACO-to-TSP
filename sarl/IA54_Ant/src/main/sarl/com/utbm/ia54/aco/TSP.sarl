@@ -14,7 +14,7 @@ import io.sarl.core.Logging
  * ---------------------------
  */
  abstract behavior TSPWorker{
- 	uses DefaultContextInteractions
+ 	uses DefaultContextInteractions, Logging
 
 	protected var envUUID : UUID
 	protected var distanceImportanceFactor : float
@@ -24,7 +24,7 @@ import io.sarl.core.Logging
 		envUUID = occurrence.source.UUID
 	}
 	
-	on ImportanceFactorChanged[isFromMe]{
+	on AntData [isFromMe] {
 		if (occurrence.distanceImportanceFactor !== -1)
 			distanceImportanceFactor = occurrence.distanceImportanceFactor
 		if (occurrence.pheromoneImportanceFactor !== -1)
@@ -61,6 +61,13 @@ import io.sarl.core.Logging
 				it.getUUID === envUUID
 			]
 			info("Computation finished")
+		}
+	}
+
+	on AntData [isFromMe] {
+		switch occurrence.tspVersion {
+			case 1: new BottleneckTSPPathFinder().setSkill(TSPPathFinder)
+			default: new SimpleTSPPathFinder().setSkill(TSPPathFinder)
 		}
 	}
  }
@@ -367,11 +374,13 @@ skill TimeWindowTSPPathFinder implements TWTSPPathFinder{
 	}
 }
 
-event ImportanceFactorChanged{
+event AntData{
+	var tspVersion : int
 	var distanceImportanceFactor : float
 	var pheromoneImportanceFactor : float
 	
-	new(distanceImportanceFactor : float, pheromoneImportanceFactor : float){
+	new(tspVersion : int, distanceImportanceFactor : float, pheromoneImportanceFactor : float){
+		this.tspVersion = tspVersion
 		this.distanceImportanceFactor = distanceImportanceFactor
 		this.pheromoneImportanceFactor = pheromoneImportanceFactor
 	}

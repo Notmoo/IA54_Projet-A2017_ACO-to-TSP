@@ -10,8 +10,8 @@ import io.sarl.core.Behaviors
 import com.utbm.ia54.aco.ClassicTSPWorker
 import com.utbm.ia54.aco.TWTSPWorker
 import com.utbm.ia54.aco.ApplicationClose
-import com.utbm.ia54.aco.ImportanceFactorChanged
 import com.utbm.ia54.aco.java.StringDef
+import com.utbm.ia54.aco.AntData
 
 //-----------------------------------------
 //		AGENTS
@@ -45,7 +45,7 @@ agent AntAgent{
 				default: new ClassicTSPWorker(this).registerBehavior
 			}
 			
-			new ImportanceFactorChanged(distanceImportanceFactor, pheromoneImportanceFactor).emit[it.UUID === this.ID]
+			new AntData(currTspVersionNb, distanceImportanceFactor, pheromoneImportanceFactor).emit[it.UUID === this.ID]
 			new AntCreated().emit
 		}else{
 			killMe
