@@ -198,15 +198,14 @@ skill SimpleTSPPathFinder implements TSPPathFinder {
 	}
 }
 
-skill BottleneckTSPPathFinder implements TSPPathFinder{
-	uses SimpleTSPPathFinder
+skill BottleneckTSPPathFinder extends SimpleTSPPathFinder{
 
 	def findPath(nbNodes : short, env : float[][][], idFirstNode : short, idLastNode : short, distImpFact : float,
 		pheImpFact : float) : TspPath {
 		var visited = ArrayFactory.newBooleanArray(nbNodes)
 		var solution = ArrayFactory.newShortArray(nbNodes)
 		var step : int
-		var dist : double = 0
+		var dist : double = -1
 		var loop = false
 		
 		do{
@@ -230,7 +229,7 @@ skill BottleneckTSPPathFinder implements TSPPathFinder{
 					} while (temp_node_id === -1 && timeout>0)
 					if(temp_node_id!==-1){
 						val temp_dist = env.get(solution.get(step - 1)).get(temp_node_id).get(0)
-						if(temp_dist<dist)
+						if(temp_dist>dist || dist <= 0)
 							dist = temp_dist
 						solution.set(step, temp_node_id)
 						visited.set(temp_node_id, true)

@@ -12,6 +12,8 @@ import com.utbm.ia54.aco.TWTSPWorker
 import com.utbm.ia54.aco.ApplicationClose
 import com.utbm.ia54.aco.java.StringDef
 import com.utbm.ia54.aco.AntData
+import com.utbm.ia54.aco.KillAnts
+import com.utbm.ia54.aco.AntDied
 
 //-----------------------------------------
 //		AGENTS
@@ -25,6 +27,7 @@ agent AntAgent{
 		if (!occurrence.parameters.isEmpty) {
 			var numAnt = occurrence.parameters.get(0) as Integer
 			loggingName = "Ant_" + numAnt.toString
+			info("The agent was started")
 			
 			var pheromoneImportanceFactor = -1 as float
 			var distanceImportanceFactor = -1 as float
@@ -33,7 +36,6 @@ agent AntAgent{
 				currTspVersionNb = occurrence.parameters.get(1) as Integer
 				pheromoneImportanceFactor = occurrence.parameters.get(2) as Float
 				distanceImportanceFactor = occurrence.parameters.get(3) as Float
-				
 			}else{
 				currTspVersionNb = 0
 				pheromoneImportanceFactor = Float.parseFloat(StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.defaulValue)
@@ -53,10 +55,15 @@ agent AntAgent{
 	}
 	
 	on Destroy {
-		
+		info("The agent died")
+		new AntDied().emit	
 	}
 	
 	on ApplicationClose {
+		killMe
+	}
+	
+	on KillAnts{
 		killMe
 	}
 }

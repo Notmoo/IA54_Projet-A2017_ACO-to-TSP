@@ -7,10 +7,12 @@ import java.util.Map
 event NewEnvironment {
 	var env : float[][][]
 	var nbNodes : short
+	var tspVersionNb : int
 
-	new (e : float[][][], nb : short) {
+	new (e : float[][][], nb : short, tspVersionNb : int) {
 		env = e
 		nbNodes = nb
+		this.tspVersionNb = tspVersionNb
 	}
 }
 
@@ -18,8 +20,8 @@ event NewTWEnvironment extends NewEnvironment{
 	var timeWindow : Map<Short, List<Pair<Float, Float>>>
 	var initialTimeStamp : float
 
-	new (e : float[][][], nb : short, tw : Map<Short, List<Pair<Float, Float>>>, its : float) {
-		super(e, nb)
+	new (e : float[][][], nb : short, tspVersionNb : int, tw : Map<Short, List<Pair<Float, Float>>>, its : float) {
+		super(e, nb, tspVersionNb)
 		timeWindow = tw
 		initialTimeStamp = its
 	}
@@ -30,10 +32,14 @@ event RequestUpdate
 event Updated{
 	var env : float[][][]
 	var nbNodes : short
+	var tspVersionNb : int
+	var resetAntRequested : boolean
 	
-	new (e : float[][][], nb : short){
+	new (e : float[][][], nb : short, tspVersionNb : int, resetAntRequested : boolean) {
 		env = e
 		nbNodes = nb
+		this.tspVersionNb = tspVersionNb
+		this.resetAntRequested = resetAntRequested
 	}
 }
 
@@ -41,12 +47,15 @@ event TWUpdated extends Updated{
 	var timeWindows : Map<Short, List<Pair<Float, Float>>>
 	var timeStamp : float
 
-	new (e : float[][][], nb : short, tw : Map<Short, List<Pair<Float, Float>>>, ts : float) {
-		super(e, nb)
+	new (e : float[][][], nb : short, tspVersionNb : int, resetAntRequested : boolean,
+		tw : Map<Short, List<Pair<Float, Float>>>, ts : float) {
+		super(e, nb, tspVersionNb, resetAntRequested)
 		timeWindows = tw
 		timeStamp = ts
 	}
 }
+
+event AntResetDone
 /*
  * Event envoyé au ants pour les informer de l'env
  */
@@ -91,6 +100,8 @@ event ChangeTspVersion {
 //Permet aux AntAgent de connaitre l'UUID de l'EnvAgent
 
 event AntCreatedAck
+
+event DisplayerReady
 
 /* Event à envoyer au displayer
  * bestSolution: défini si la solution est celle de la convergence ou non
@@ -160,5 +171,9 @@ event TspPath{
 event AckSolution
 
 event IterationFinished
+
+event KillAnts
+
+event AntDied
 
 event ApplicationClose

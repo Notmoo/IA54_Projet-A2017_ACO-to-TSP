@@ -28,6 +28,9 @@ agent Environment {
 	var twBehavior : TWTSPEnvironment
 	
 	on Initialize {
+		loggingName = "Environment"
+		info("The agent was started")
+		
 		simpleBehavior = new SimpleTSPEnvironment(this)
 		twBehavior = new TWTSPEnvironment(this)
 		
@@ -47,6 +50,10 @@ agent Environment {
 
 		spawn(Scheduler, nbAnts)
 		spawn(DisplayerAgent)
+	}
+	
+	on Destroy {
+		info("The agent died")
 	}
 
 	on TspInputFile {
@@ -68,10 +75,10 @@ agent Environment {
 			tspVersion = envData.tspVersionNb
 		}
 		if (tspVersion === 0 || tspVersion === 1) {
-			new NewEnvironment(envData.env, envData.nbNodes).emit
+			new NewEnvironment(envData.env, envData.nbNodes, tspVersion).emit
 		}else if (tspVersion === 2) {
 			// TODO résoudre le problème de mapping avec le param 'envData.timeWindow'
-			//new NewTWEnvironment(envData.env, envData.nbNodes, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
+			// new NewTWEnvironment(envData.env, envData.nbNodes, tspVersion, envData.timeWindow, envData.initialTimeStamp).emit[it.UUID === this.ID]
 		}	
 	}
 	
@@ -82,7 +89,5 @@ agent Environment {
 	on AntCreated {
 		new AntCreatedAck().emit[it.UUID === occurrence.source.UUID]
 	}
-
-	on Destroy {
-	}
 }
+

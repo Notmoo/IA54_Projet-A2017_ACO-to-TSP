@@ -12,7 +12,6 @@ import gui.main_frame.MainFrame
 import io.sarl.core.Schedules
 import interfaces.ITSPDisplayerCallback
 import io.sarl.core.Lifecycle
-import com.utbm.ia54.aco.DisplayerReady
 import com.utbm.ia54.aco.DisplayNodes
 import com.utbm.ia54.aco.ClearSolutions
 import com.utbm.ia54.aco.ClearNodes
@@ -55,7 +54,6 @@ agent DisplayerAgent {
 		task.every(1000) [
 			if (MainFrame.instance !== null) {
 				gui = MainFrame.instance
-				new DisplayerReady().emit
 				gui.addListener(new ITSPDisplayerCallback() {
 					def onFileInput(filePath : Path) {
 						fireInputFileRequested(filePath)
@@ -74,13 +72,6 @@ agent DisplayerAgent {
 					properties.put(prop.label, prop.defaulValue)
 				}
 				
-				//XXX
-				var sb = new StringBuffer("\nPROPERTIES : \n")
-				for(key : properties.keySet){
-					sb.append(key).append(" : ").append(properties.get(key)).append("\n")
-				}
-				info(sb.toString)
-				
 				gui.properties = properties
 				task.cancel
 			}
@@ -88,9 +79,7 @@ agent DisplayerAgent {
 	}
 
 	on Destroy {
-		// Event trigger when the agent is destroyed from the system.
-		// You should put all the resource releasing statements in this block of code.
-		info("DisplayerAgent was stopped.")
+		info("The agent died")
 	}
 	
 	on DisplayIteration {
@@ -103,6 +92,8 @@ agent DisplayerAgent {
 			gui.displaySolution(occurrence.nbNodes, bestSolutionEver, bestDistEver, occurrence.nodes,
 				occurrence.distance)
 		}
+		//XXX
+		info("best : "+bestDistEver)
 		val task = task("delay_ack")
 		task.in(1000) [
 			new AckDisplayIteration().emit
