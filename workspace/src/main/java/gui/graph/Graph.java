@@ -3,7 +3,7 @@ package gui.graph;
 import gui.graph.cell.Cell;
 import gui.graph.cell.CellType;
 import gui.graph.edge.EdgeType;
-import gui.layout.CellLayer;
+import gui.graph.layout.CellLayer;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -13,13 +13,13 @@ import java.util.List;
 
 public class Graph {
 
-    private Model model;
+    private GraphModel model;
 
     private Group canvas;
 
     private ScrollPane scrollPane;
 
-    MouseGestures mouseGestures;
+    GraphMouseGestures mouseGestures;
 
     /**
      * the pane wrapper is necessary or else the scrollpane would always align
@@ -30,14 +30,14 @@ public class Graph {
 
     public Graph() {
 
-        this.model = new Model();
+        this.model = new GraphModel();
 
         canvas = new Group();
         cellLayer = new CellLayer();
 
         canvas.getChildren().add(cellLayer);
 
-        mouseGestures = new MouseGestures(this);
+        mouseGestures = new GraphMouseGestures(this);
 
         //scrollPane = new ZoomableScrollPane(canvas);
         scrollPane = new ScrollPane(canvas);
@@ -53,11 +53,12 @@ public class Graph {
 
     public void applyUpdate() {
 
-        // add components to graph pane
-        getCellLayer().getChildren().addAll(model.getAddedEdges());
-        getCellLayer().getChildren().addAll(model.getAddedCells());
 
-        // remove components from graph pane
+
+        // add components to graph pane
+        getCellLayer().getChildren().addAll(model.getAddedCells());
+        getCellLayer().getChildren().addAll(model.getAddedEdges());
+
         getCellLayer().getChildren().removeAll(model.getRemovedCells());
         getCellLayer().getChildren().removeAll(model.getRemovedEdges());
 
@@ -98,7 +99,7 @@ public class Graph {
 
     public void clearEdges(){model.removeAllEdges();}
 
-    public Node getContent() {
+    public ScrollPane getContent() {
         return this.scrollPane;
     }
 }

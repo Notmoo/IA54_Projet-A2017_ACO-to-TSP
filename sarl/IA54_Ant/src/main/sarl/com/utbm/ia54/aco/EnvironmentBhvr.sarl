@@ -1,0 +1,173 @@
+package com.utbm.ia54.aco
+
+import io.sarl.core.DefaultContextInteractions
+import java.util.UUID
+import java.util.Map
+import java.util.List
+import com.utbm.ia54.aco.java.ArrayFactory
+import com.utbm.ia54.aco.java.StringDef
+
+abstract behavior AbstractTSPEnvironment {
+	uses DefaultContextInteractions
+	/********************************************************************** 
+	 */
+	protected var envIsInit : boolean = false
+	protected var env : float[][][] // trois dim, nbNodes*nbNodes*2
+	protected var nbNodes : short = 1 as short
+	protected var tspVersionNb : int = 0
+	
+	protected var requestAntReset : boolean = false
+	
+	protected var defaultPheromoneLevel : float = 1f// Niveau initial de phéromones
+	protected var pheromoneEvaporationFactor : float = Float.
+		parseFloat(StringDef.ENV_PHEROMONE_IMPORTANCE_FACTOR_STR.defaulValue) // Variable pour l'importance de l'évaporation des phéromones dans l'env
+	protected var distanceFactor : float = Float.parseFloat(StringDef.ENV_DISTANCE_IMPORTANCE_FACTOR_STR.defaulValue)// Variable pour l'importance de la distance dans l'env
+	
+	protected var solution : float[][]
+	protected var bestIterationDistance : double = -1
+	protected var bestIterationSolution : short[] = ArrayFactory.newShortArray(nbNodes)
+
+	/********************************************************************** 
+	 */
+
+	on RequestUpdate {
+		resetSolutionDatas()
+		if (envIsInit) {
+			sendUpdateEvent(occurrence.source.getUUID)
+		}
+	}
+
+	on TspPath {
+		var senderID = occurrence.source.getUUID
+
+		var newDist = occurrence.distance
+
+		if (bestIterationDistance === -1 || bestIterationDistance > newDist) {
+			bestIterationDistance = newDist
+			bestIterationSolution = occurrence.nodes
+		}
+		updateSolution(occurrence.nodes, occurrence.nbNodes);
+
+		new AckSolution().emit[it.getUUID == senderID]
+	}
+
+	on IterationFinished {
+		updateEnvironment()
+		new DisplayIteration(nbNodes, bestIterationSolution, bestIterationDistance).emit
+	}
+	
+	on TspPropertyChanged {
+		switch occurrence.property_id {
+			case StringDef.ENV_DISTANCE_IMPORTANCE_FACTOR_STR.label: {
+				var temp = Float.parseFloat(occurrence.property_value)
+				distanceFactor = temp
+			}
+			case StringDef.ENV_PHEROMONE_IMPORTANCE_FACTOR_STR.label: {
+				var temp = Float.parseFloat(occurrence.property_value)
+				pheromoneEvaporationFactor = temp
+			}
+			
+		}
+	}
+	
+	on AckDisplayNodes{
+		sendUpdateEvent
+	}
+	
+	on AckDisplayIteration{
+		sendUpdateEvent
+	}
+	
+	on AntResetDone {
+		requestAntReset = false
+	}
+	/********************************************************************** 
+	 */
+	def updateSolution(nodes : short[], nbNode : short) {
+		for (var i = 0; i < nbNode - 1; i++) {
+			var beginNode = nodes.get(i)
+			var finishNode = nodes.get(i + 1)
+
+			var value = solution.get(beginNode).get(finishNode) + 1
+
+			solution.get(beginNode).set(finishNode, value)
+		}
+	}
+
+	def updateEnvironment() {
+		for (var i = 0; i < nbNodes; i++) {
+			for (var j = 0; j < nbNodes; j++) {
+				env.get(i).get(j).set(1,
+					pheromoneEvaporationFactor *
+						((env.get(i).get(j).get(1) + distanceFactor * solution.get(i).get(j) / env.get(i).get(j).get(0))+env.get(i).get(j).get(1)))
+			}
+		}
+	}
+
+	def resetSolutionDatas() {
+		solution = ArrayFactory.newResultFloat2DMatrix(nbNodes)
+		bestIterationDistance = -1
+		bestIterationSolution = ArrayFactory.newShortArray(nbNodes)
+		for (var i = 0; i < nbNodes; i++) {
+			for (var j = 0; j < nbNodes; j++) {
+				solution.get(i).set(j, 0f)
+			}
+		}
+	}
+	
+	def setEnv(nbNodes : short, newEnv : float[][][], tspVersionNb : int) {
+		for (var i = 0; i < nbNodes; i++) {
+			for (var j = 0; j < nbNodes; j++) {
+				newEnv.get(i).get(j).set(1, defaultPheromoneLevel)
+			}
+		}
+		this.tspVersionNb = tspVersionNb
+		this.env = newEnv
+		this.nbNodes = nbNodes
+		envIsInit = true
+		requestAntReset = true
+		new DisplayNodes(nbNodes).emit
+	}
+
+	def abstract sendUpdateEvent()
+	def abstract sendUpdateEvent(uuid : UUID)
+}
+
+behavior SimpleTSPEnvironment extends AbstractTSPEnvironment {
+	uses DefaultContextInteractions
+	
+	def sendUpdateEvent {
+		new Updated(env, nbNodes, tspVersionNb, requestAntReset).emit
+	}
+	
+	def sendUpdateEvent(uuid : UUID) {
+		new Updated(env, nbNodes, tspVersionNb, requestAntReset).emit[it.UUID === uuid]
+	}
+
+	on NewEnvironment {
+		setEnv(occurrence.nbNodes, occurrence.env, occurrence.tspVersionNb)
+		resetSolutionDatas()
+	}
+}
+
+behavior TWTSPEnvironment extends AbstractTSPEnvironment {
+	uses DefaultContextInteractions
+	
+	protected var timeWindow : Map<Short, List<Pair<Float, Float>>> = null
+	protected var initialTime : float = 0f
+	
+	def sendUpdateEvent {
+		new TWUpdated(env, nbNodes, tspVersionNb, requestAntReset, timeWindow, initialTime).emit
+	}
+	
+	def sendUpdateEvent(uuid : UUID) {
+		new TWUpdated(env, nbNodes, tspVersionNb, requestAntReset, timeWindow, initialTime).emit[it.UUID === uuid]
+	}
+
+	on NewTWEnvironment {
+		timeWindow = occurrence.timeWindow
+		initialTime = occurrence.initialTimeStamp
+		setEnv(occurrence.nbNodes, occurrence.env, occurrence.tspVersionNb)
+		resetSolutionDatas()
+	}
+}

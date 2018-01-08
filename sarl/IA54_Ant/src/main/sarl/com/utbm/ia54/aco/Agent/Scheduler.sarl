@@ -1,0 +1,199 @@
+/** 
+ * 
+ */
+package com.utbm.ia54.aco.Agent
+
+import io.sarl.core.Initialize
+import io.sarl.core.Logging
+import io.sarl.core.DefaultContextInteractions
+import io.sarl.core.Lifecycle
+import com.utbm.ia54.aco.Updated
+import com.utbm.ia54.aco.AntCreated
+import com.utbm.ia54.aco.RequestUpdate
+import com.utbm.ia54.aco.AntFinished
+import com.utbm.ia54.aco.IterationFinished
+import com.utbm.ia54.aco.SimpleIterationStart
+import com.utbm.ia54.aco.TWUpdated
+import com.utbm.ia54.aco.TWIterationStart
+import com.utbm.ia54.aco.TspPropertyChanged
+import com.utbm.ia54.aco.ApplicationClose
+import com.utbm.ia54.aco.java.StringDef
+import com.utbm.ia54.aco.KillAnts
+import com.utbm.ia54.aco.AntDied
+import com.utbm.ia54.aco.AntResetDone
+import io.sarl.core.Destroy
+
+/** 
+ * @author Mara
+ */
+agent Scheduler {
+	uses Logging, DefaultContextInteractions, Lifecycle
+	
+	var nbAnts : int
+	var nbAntsAck : int
+	var nbAntsCreated : int
+	
+	var oldNbAnts : int
+	var nbAntsKilled : int
+	var antsMustDie : boolean
+	var antsWereSpawn : boolean
+	
+	var firstNodeId : short
+	var lastNodeId : short
+	
+	var pheromoneImportanceFactor : float
+	var distanceImportanceFactor : float
+	
+	var tspVersionNb : int
+
+	on Initialize {
+		loggingName = "Scheduler"
+		info("The agent was started.")
+		
+		if (!occurrence.parameters.isEmpty) {
+			nbAnts = occurrence.parameters.get(0) as Integer
+		}else{
+			error("Number of ants not specified to scheduler")
+			killMe
+		}
+
+		nbAntsAck = 0;
+		nbAntsCreated = 0;
+		
+		oldNbAnts = nbAnts
+		nbAntsKilled = 0
+		antsMustDie = false
+		antsWereSpawn = false
+		
+		tspVersionNb = 0
+		
+		firstNodeId = Short.parseShort(StringDef.FIRST_NODE_ID_STR.defaulValue)
+		lastNodeId = Short.parseShort(StringDef.LAST_NODE_ID_STR.defaulValue)
+		
+		pheromoneImportanceFactor = Float.parseFloat(StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.defaulValue)
+		distanceImportanceFactor = Float.parseFloat(StringDef.ANT_DISTANCE_IMPORTANCE_FACTOR_STR.defaulValue)
+	}
+	
+	on Destroy {
+		info("The agent died")
+	}
+	
+	on Updated {
+		tspVersionNb = occurrence.tspVersionNb
+		if(antsMustDie || occurrence.resetAntRequested){
+			resetAnts
+		} else {
+			var env = occurrence.env
+			var nbNodes = occurrence.nbNodes
+			new SimpleIterationStart(nbNodes, env, (-1) as short, (-1) as short).emit
+		}
+	}
+	
+	on TWUpdated {
+		tspVersionNb = occurrence.tspVersionNb
+		if (antsMustDie || occurrence.resetAntRequested) {
+			resetAnts
+		} else {
+			new TWIterationStart(
+				occurrence.nbNodes,
+				occurrence.env,
+				(-1) as short,
+				(-1) as short,
+				occurrence.timeWindows,
+				occurrence.timeStamp
+			).emit
+		}
+	}
+	
+	on AntCreated {
+		nbAntsCreated ++
+		if (nbAntsCreated >= nbAnts) {
+			nbAntsCreated = 0;
+			emit(new RequestUpdate);	
+		}
+	}
+	
+	on AntDied {
+		nbAntsKilled++
+		if(nbAntsKilled >= oldNbAnts){
+			nbAntsCreated = 0
+			nbAntsKilled = 0
+			oldNbAnts = nbAnts
+			
+			spawnAnts
+		}
+	}
+	
+	on AntFinished {
+		nbAntsAck++
+		
+		if (nbAntsAck >= nbAnts) {
+			nbAntsAck = 0
+			emit(new IterationFinished)
+		}
+	}
+	
+	on TspPropertyChanged {
+		info("Property changed received : " + occurrence.property_id + " -> " + occurrence.property_value)
+		switch occurrence.property_id{
+			case StringDef.NB_OF_ANTS_STR.label: {
+				var temp = Integer.parseInt(occurrence.property_value)
+				if (nbAnts !== temp) {
+					nbAnts = temp
+					antsMustDie = true
+				}
+			}
+			case StringDef.FIRST_NODE_ID_STR.label: {
+				var temp = Short.parseShort(occurrence.property_value)
+				if (temp < -1)
+					temp = (-1) as short
+				if (temp !== lastNodeId || temp === -1) {
+					firstNodeId = temp
+				}
+			}
+			case StringDef.LAST_NODE_ID_STR.label: {
+				var temp = Short.parseShort(occurrence.property_value)
+				if(temp < -1)
+					temp = (-1) as short
+				if(temp!==firstNodeId || temp === -1){
+					lastNodeId = temp
+				}
+			}
+			case StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.label: {
+				var temp = Float.parseFloat(occurrence.property_value)
+				if (pheromoneImportanceFactor !== temp) {
+					pheromoneImportanceFactor = temp
+					antsMustDie = true
+				}
+			}
+			case StringDef.ANT_DISTANCE_IMPORTANCE_FACTOR_STR.label: {
+				var temp = Float.parseFloat(occurrence.property_value)
+				if (distanceImportanceFactor !== temp) {
+					distanceImportanceFactor = temp
+					antsMustDie = true
+				}
+			}
+		}
+	}
+	
+	on ApplicationClose{
+		killMe
+	}
+	
+	def resetAnts {
+		if (antsWereSpawn) {
+			new KillAnts().emit
+			antsMustDie = false
+		} else {
+			spawnAnts
+		}
+		new AntResetDone().emit
+	}
+	
+	def spawnAnts {
+		antsWereSpawn = true
+		for (var i = 0; i < nbAnts; i++) {
+			spawn(AntAgent, i, tspVersionNb, pheromoneImportanceFactor, distanceImportanceFactor);
+		}
+	}
+}

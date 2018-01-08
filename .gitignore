@@ -14,3 +14,7 @@
 # Maven
 log/
 workspace/target/
+TSPFileParser/target/
+sarl/IA54_Ant/target/
+sarl/IA54_Ant/src/main/generated-sources/
+sarl/.metadata/

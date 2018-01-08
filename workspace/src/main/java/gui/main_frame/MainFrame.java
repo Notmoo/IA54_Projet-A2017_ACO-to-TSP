@@ -1,29 +1,47 @@
 package gui.main_frame;
 
+import gui.chart.Chart;
 import gui.graph.Graph;
 import gui.graph.cell.CellType;
 import gui.graph.edge.EdgeType;
-import gui.layout.Layout;
-import gui.layout.impl.RandomLayout;
+import gui.graph.layout.Layout;
+import gui.graph.layout.impl.RandomLayout;
+import gui.toolbar.PropertyToolbar;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.chart.Chart;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import model.ITSPDisplayer;
-import model.ITSPDisplayerCallback;
+import interfaces.ITSPDisplayer;
+import interfaces.ITSPDisplayerCallback;
 
 import javax.swing.event.EventListenerList;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class MainFrame extends Application implements ITSPDisplayer  {
 
+    private static MainFrame INSTANCE = null;
+    private static final String GRAPH_STRING_ID = "Graph", CHART_STRING_ID = "Courbe";
+
+    public static MainFrame getInstance(){
+        return INSTANCE;
+    }
+
+    public static void summonGui(){
+        new Thread(Application::launch).start();
+    }
+
     private BorderPane root;
-    private Scene scene;
 
     private Graph graph;
     private Chart chart;
+    private PropertyToolbar toolbar;
 
     private String currentScreen;
     private String requestedScreen;
@@ -31,6 +49,7 @@ public class MainFrame extends Application implements ITSPDisplayer  {
     private EventListenerList listenerList;
 
     public MainFrame() {
+        INSTANCE = this;
         currentScreen = "";
         requestedScreen = "";
 
@@ -42,17 +61,23 @@ public class MainFrame extends Application implements ITSPDisplayer  {
         initAndShow(primaryStage);
     }
 
+    @Override
+    public void stop(){
+        Arrays.stream(listenerList.getListeners(ITSPDisplayerCallback.class))
+                .forEach(ITSPDisplayerCallback::onGuiClose);
+    }
+
     private void updateScreen(){
         if(!currentScreen.equals(requestedScreen)){
             switch(requestedScreen){
-                case "graph" :
+                case GRAPH_STRING_ID :
                     Platform.runLater(()->{
                         root.setCenter(graph.getContent());
                     });
                     break;
-                case "chart" :
+                case CHART_STRING_ID :
                     Platform.runLater(()->{
-                        //TODO add chart screen's content
+                        root.setCenter(chart.getContent());
                     });
                     break;
                 default :
@@ -65,54 +90,169 @@ public class MainFrame extends Application implements ITSPDisplayer  {
 
     private void initAndShow(Stage primaryStage){
 
+        //Initialisation de du pane pricipal
         root = new BorderPane();
 
-        scene = new Scene(root, 1024, 768);
-        //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        //Initialisation de la scène
+        Scene scene = new Scene(root, 500, 500);
+        scene.getStylesheets().add("style.css");
 
+        root.prefWidthProperty().bind(scene.widthProperty());
+        root.prefHeightProperty().bind(scene.heightProperty());
+
+        //Initialisation du pane contenant le graph
         graph = new Graph();
 
+
         Layout layout = new RandomLayout(graph);
-        layout.execute();
+        layout.execute(graph.getContent().widthProperty().get(), graph.getContent().heightProperty().get());
 
+        //Initialisation du pane contenant les courbes
+        chart = new Chart();
 
-        requestedScreen = "graph";
+        //Initialisation de la barre de propriété latérale
+        toolbar = new PropertyToolbar();
+        root.setRight(toolbar.getContent());
+        toolbar.addListener(((property, value) -> {
+            Arrays.stream(listenerList.getListeners(ITSPDisplayerCallback.class))
+                    .forEach(l->l.onPropertyChanged(property, value));
+        }));
+
+        //Initialisation de la barre de menu
+        Menu navMenu = new Menu("Ecrans");
+        ToggleGroup tGroup = new ToggleGroup();
+        RadioMenuItem graphMenuItem = new RadioMenuItem(GRAPH_STRING_ID);
+        graphMenuItem.setToggleGroup(tGroup);
+        graphMenuItem.setSelected(true);
+        graphMenuItem.setOnAction(event->{
+            requestedScreen = GRAPH_STRING_ID;
+            updateScreen();
+        });
+        RadioMenuItem chartMenuItem = new RadioMenuItem(CHART_STRING_ID);
+        chartMenuItem.setOnAction(event->{
+            requestedScreen = CHART_STRING_ID;
+            updateScreen();
+        });
+        chartMenuItem.setToggleGroup(tGroup);
+        navMenu.getItems().addAll(graphMenuItem, chartMenuItem);
+
+        Menu miscMenu = new Menu("Autres");
+        CheckMenuItem propertiesMenuItem = new CheckMenuItem("Afficher les propriétés");
+        propertiesMenuItem.setSelected(true);
+        propertiesMenuItem.selectedProperty().addListener((obs, oldValue, newValue)->{
+            if(newValue)
+                root.setRight(toolbar.getContent());
+            else
+                root.setRight(null);
+        });
+        MenuItem importFileMenuItem = new MenuItem("Importer...");
+        importFileMenuItem.setOnAction((event)->{
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Importer un fichier de configuration TSP");
+            File selectedFile = fileChooser.showOpenDialog(new Stage());
+
+            if(selectedFile!=null){
+                Path path = selectedFile.toPath();
+                Arrays.stream(listenerList.getListeners(ITSPDisplayerCallback.class))
+                        .forEach(l->l.onFileInput(path));
+            }
+        });
+        miscMenu.getItems().addAll(propertiesMenuItem, importFileMenuItem);
+
+        MenuBar menuBar = new MenuBar();
+        menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
+        menuBar.getMenus().addAll(navMenu, miscMenu);
+        root.setTop(menuBar);
+
+        //Affichage de l'écran par défaut
+        requestedScreen = GRAPH_STRING_ID;
         updateScreen();
 
+        //Update du stage JFX et affichage
         primaryStage.setScene(scene);
         primaryStage.setTitle("Ant Colony Optimisation appliqué au problème du TSP - IA54 - A2017 - BOUCHEREAU/PROST");
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
     @Override
+    public void setProperties(Map<String, String> properties) {
+        Platform.runLater(()->{
+            toolbar.setProperties(properties);
+        });
+    }
+
+    @Override
     public void displayNodes(Map<Short, String> nodes) {
+        graph.clearEdges();
         for(short s : nodes.keySet()){
             graph.addCell(convertToCellTag(s, nodes.get(s)), CellType.SIMPLE);
         }
-        graph.applyUpdate();
+        Platform.runLater(()->{
+            graph.applyUpdate();
+
+            new RandomLayout(graph).execute(graph.getContent().widthProperty().get(), graph.getContent().heightProperty().get());
+            chart.clearChart();
+        });
+    }
+
+    @Override
+    public void displayNodes(short nbNodes) {
+        Map<Short, String> nodes = new HashMap<>();
+        for(short i = 1; i<=nbNodes; i++){
+            nodes.put(i, "Node n°"+i);
+        }
+        displayNodes(nodes);
     }
 
     @Override
     public void clearNodes() {
-        graph.clearCells();
+        Platform.runLater(()->{
+            graph.clearCells();
+            chart.clearChart();
+        });
     }
 
     @Override
-    public void displaySolution(int nbNodes, Short[] solution, long dist, boolean best) {
-        EdgeType type = best? EdgeType.BEST_SOLUTION : EdgeType.NORMAL;
+    public void displaySolution(int nbNodes, short[] solution, double dist) {
+        graph.clearEdges();
         for(int i =1; i<nbNodes; i++){
-            graph.addEdge(solution[i-1].toString(), solution[i].toString(), type);
+            short start = (short)(solution[i - 1]+1);
+            short end = (short)(solution[i]+1);
+            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.BEST_SOLUTION);
         }
-        graph.applyUpdate();
 
-        if(best){
-            //TODO update chart
+        Platform.runLater(()->{
+            graph.applyUpdate();
+            chart.addNextDistance(dist);
+        });
+    }
+
+    @Override
+    public void displaySolution(int nbNodes, short[] bestSolution, double bestDist, short[] solution, double dist) {
+        graph.clearEdges();
+        for(int i =1; i<nbNodes; i++){
+            short start = (short)(solution[i - 1]+1);
+            short end = (short)(solution[i]+1);
+
+            short startForBest = (short)(bestSolution[i - 1]+1);
+            short endForBest = (short)(bestSolution[i]+1);
+            graph.addEdge(Short.toString(start), Short.toString(end), EdgeType.NORMAL);
+            graph.addEdge(Short.toString(startForBest), Short.toString(endForBest), EdgeType.BEST_SOLUTION);
         }
+
+        Platform.runLater(()->{
+            graph.applyUpdate();
+            chart.addNextDistance(bestDist);
+        });
     }
 
     @Override
     public void clearSolutions() {
-        graph.clearEdges();
+        Platform.runLater(()->{
+            graph.clearEdges();
+            chart.clearChart();
+        });
     }
 
     @Override

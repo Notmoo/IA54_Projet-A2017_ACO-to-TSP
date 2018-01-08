@@ -1,0 +1,179 @@
+package com.utbm.ia54.aco
+
+import java.nio.file.Path
+import java.util.List
+import java.util.Map
+
+event NewEnvironment {
+	var env : float[][][]
+	var nbNodes : short
+	var tspVersionNb : int
+
+	new (e : float[][][], nb : short, tspVersionNb : int) {
+		env = e
+		nbNodes = nb
+		this.tspVersionNb = tspVersionNb
+	}
+}
+
+event NewTWEnvironment extends NewEnvironment{
+	var timeWindow : Map<Short, List<Pair<Float, Float>>>
+	var initialTimeStamp : float
+
+	new (e : float[][][], nb : short, tspVersionNb : int, tw : Map<Short, List<Pair<Float, Float>>>, its : float) {
+		super(e, nb, tspVersionNb)
+		timeWindow = tw
+		initialTimeStamp = its
+	}
+}
+
+event RequestUpdate
+
+event Updated{
+	var env : float[][][]
+	var nbNodes : short
+	var tspVersionNb : int
+	var resetAntRequested : boolean
+	
+	new (e : float[][][], nb : short, tspVersionNb : int, resetAntRequested : boolean) {
+		env = e
+		nbNodes = nb
+		this.tspVersionNb = tspVersionNb
+		this.resetAntRequested = resetAntRequested
+	}
+}
+
+event TWUpdated extends Updated{
+	var timeWindows : Map<Short, List<Pair<Float, Float>>>
+	var timeStamp : float
+
+	new (e : float[][][], nb : short, tspVersionNb : int, resetAntRequested : boolean,
+		tw : Map<Short, List<Pair<Float, Float>>>, ts : float) {
+		super(e, nb, tspVersionNb, resetAntRequested)
+		timeWindows = tw
+		timeStamp = ts
+	}
+}
+
+event AntResetDone
+/*
+ * Event envoyé au ants pour les informer de l'env
+ */
+ //Version classique de l'événement, utilisée pour les impl les plus courantes
+event SimpleIterationStart {
+	var nbNodes : short
+	var env : float[][][]
+	var idFirstNode : short
+	var idLastNode : short
+	
+	new (nb : short, e : float[][][], idFN : short, idLN : short){
+		nbNodes = nb;
+		env = e
+		idFirstNode = idFN
+		idLastNode = idLN
+		
+	}
+}
+
+//Version de l'événement destinée aux problèmes avec horaires de livraison (TW -> Time Window)
+event TWIterationStart extends SimpleIterationStart{
+	var timeWindows : Map<Short, List<Pair<Float, Float>>>
+	var initialTimeStamp : float
+
+	new (nb : short, e : float[][][], idFN : short, idLN : short, tw : Map<Short, List<Pair<Float, Float>>>,
+		its : float) {
+		super(nb, e, idFN, idLN)
+		timeWindows = tw
+		initialTimeStamp = its
+	}
+}
+
+event AntCreated
+
+event AntFinished
+
+event ChangeTspVersion {
+	var version_nb : int
+}
+
+//Event envoyé par l'EnvAgent en réponse à un event AntCreated
+//Permet aux AntAgent de connaitre l'UUID de l'EnvAgent
+
+event AntCreatedAck
+
+event DisplayerReady
+
+/* Event à envoyer au displayer
+ * bestSolution: défini si la solution est celle de la convergence ou non
+ */
+
+event DisplayIteration {
+	val nbNodes : short
+	val nodes : short[] // liste des noeux classer dans ordre de passage
+	val distance : double
+
+	new (nb : short, n : short[], d : double) {
+		nbNodes = nb
+		nodes = n
+		distance = d
+	}
+}
+
+/*
+ * Pour l'affichage des nodes
+ */
+event DisplayNodes{
+	val nbNodes : short
+	
+	new (nb : short){
+		nbNodes = nb
+	}
+}
+
+event AckDisplayNodes
+
+event AckDisplayIteration
+
+event ClearNodes
+
+event ClearSolutions
+
+event TspPropertyChanged{
+	val property_id : String
+	val property_value : String
+	
+	new (id : String, value : String) {
+		property_id = id
+		property_value = value
+	}
+}
+
+event TspInputFile{
+	val path : Path
+	
+	new (p : Path){
+		path = p
+	}
+}
+
+event TspPath{
+	val nbNodes : short
+	val nodes: short[] //liste des noeuds classer dans ordre de passage
+	val distance : double	
+	
+	new (nb : short, n : short[], d : double) {
+		nbNodes = nb
+		nodes = n
+		distance = d
+	}
+}
+
+event AckSolution
+
+event IterationFinished
+
+event KillAnts
+
+event AntDied
+
+event ApplicationClose
