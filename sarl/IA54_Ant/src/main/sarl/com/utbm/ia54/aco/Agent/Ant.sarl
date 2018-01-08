@@ -12,6 +12,9 @@ import com.utbm.ia54.aco.TWTSPWorker
 import com.utbm.ia54.aco.ApplicationClose
 import com.utbm.ia54.aco.java.StringDef
 import com.utbm.ia54.aco.AntData
+import com.utbm.ia54.aco.KillAnts
+import com.utbm.ia54.aco.AntKilled
+
 
 //-----------------------------------------
 //		AGENTS
@@ -53,8 +56,13 @@ agent AntAgent{
 	}
 	
 	on Destroy {
-		
+		new AntKilled()
 	}
+
+	on KillAnts {
+		killMe
+	}
+
 	
 	on ApplicationClose {
 		killMe

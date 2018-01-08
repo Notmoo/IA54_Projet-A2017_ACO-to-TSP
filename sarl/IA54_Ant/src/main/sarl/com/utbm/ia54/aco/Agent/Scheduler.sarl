@@ -18,6 +18,9 @@ import com.utbm.ia54.aco.TWIterationStart
 import com.utbm.ia54.aco.TspPropertyChanged
 import com.utbm.ia54.aco.ApplicationClose
 import com.utbm.ia54.aco.java.StringDef
+import com.utbm.ia54.aco.KillAnts
+import com.utbm.ia54.aco.AntKilled
+
 
 /** 
  * @author Mara
@@ -28,6 +31,9 @@ agent Scheduler {
 	var nbAnts : int
 	var nbAntsAck : int
 	var nbAntsCreated : int
+	var nbAntsKilled : int
+	var antMustDied : boolean
+	var oldnbAnts : int
 	
 	var firstNodeId : short
 	var lastNodeId : short
@@ -48,6 +54,9 @@ agent Scheduler {
 
 		nbAntsAck = 0;
 		nbAntsCreated = 0;
+		nbAntsKilled = 0;
+		antMustDied = false;
+		
 		
 		firstNodeId = Short.parseShort(StringDef.FIRST_NODE_ID_STR.defaulValue)
 		lastNodeId = Short.parseShort(StringDef.LAST_NODE_ID_STR.defaulValue)
@@ -65,8 +74,13 @@ agent Scheduler {
 		var env = occurrence.env
 		var nbNodes = occurrence.nbNodes
 
-		var newEvent = new SimpleIterationStart(nbNodes, env, (-1) as short, (-1) as short)
-		emit(newEvent)
+		if (antMustDied) {
+			new KillAnts().emit
+		} 
+		else {
+			new SimpleIterationStart(nbNodes, env, (-1) as short, (-1) as short).emit
+		}
+
 	}
 	
 	on TWUpdated {
@@ -85,6 +99,16 @@ agent Scheduler {
 		if (nbAntsCreated >= nbAnts) {
 			nbAntsCreated = 0;
 			emit(new RequestUpdate);	
+		}
+	}
+
+	on AntKilled {
+		nbAntsKilled++
+		if (nbAntsKilled >= oldnbAnts) {
+			nbAntsKilled = 0
+			for (var i = 0; i < nbAnts; i++) {
+				spawn(AntAgent, i);
+			}
 		}
 	}
 	
@@ -106,7 +130,7 @@ agent Scheduler {
 				//TODO uncomment this
 				// var temp = Integer.parseInt(occurrence.property_value)
 				// nbAnts = temp
-				// TODO rebuild toutes les fourmis
+				antMustDied = true
 			}
 			case StringDef.FIRST_NODE_ID_STR.label: {
 				var temp = Short.parseShort(occurrence.property_value)
@@ -123,12 +147,12 @@ agent Scheduler {
 			case StringDef.ANT_PHEROMONE_IMPORTANCE_FACTOR_STR.label: {
 				var temp = Float.parseFloat(occurrence.property_value)
 				pheromoneImportanceFactor = temp
-				// TODO rebuild toutes les fourmis
+				antMustDied = true
 			}
 			case StringDef.ANT_DISTANCE_IMPORTANCE_FACTOR_STR.label: {
 				var temp = Float.parseFloat(occurrence.property_value)
 				distanceImportanceFactor = temp
-				// TODO rebuild toutes les fourmis
+				antMustDied = true
 			}
 		}
 	}
